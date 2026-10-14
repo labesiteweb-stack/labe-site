@@ -1,0 +1,258 @@
+---
+import Base from '../../layouts/Base.astro';
+import { render } from 'astro:content';
+import { LANGUES, t } from '../../i18n/ui';
+import { parLangue } from '../../lib/contenu';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const tous = (await parLangue('equipe', lang)).sort((a, b) => a.data.ordre - b.data.ordre || a.data.nom.localeCompare(b.data.nom));
+const direction = tous.find((m) => m.data.role === 'direction');
+const { Content: Bio } = direction ? await render(direction) : { Content: null };
+
+const roles = ['personnel', 'postdoc', 'doctorat', 'maitrise', 'stagiaire'] as const;
+const actuels = roles
+  .map((role) => ({ role, membres: tous.filter((m) => m.data.statut === 'actuel' && m.data.role === role) }))
+  .filter((g) => g.membres.length);
+const anciens = tous.filter((m) => m.data.statut === 'ancien');
+
+const initiales = (nom: string) =>
+  nom
+    .split(',')[0]
+    .split(/[\s-]+/)
+    .filter((m) => /^\p{Lu}/u.test(m))
+    .slice(0, 2)
+    .map((m) => m[0])
+    .join('');
+---
+
+<Base lang={lang} titre={t(lang, 'equipe.titre')} section="equipe">
+  <header class="entete-page cadre">
+    <h1>{t(lang, 'equipe.titre')}</h1>
+    <p class="chapo">{t(lang, 'equipe.intro')}</p>
+  </header>
+
+  {
+    direction && (
+      <section class="cadre directrice" aria-labelledby="direction">
+        <div class="directrice__photo">
+          {direction.data.photo ? (
+            <img src={direction.data.photo} alt={`Portrait de ${direction.data.nom.split(',')[0]}`} width="640" height="800" />
+          ) : (
+            <span class="monogramme monogramme--grand" aria-hidden="true">{initiales(direction.data.nom)}</span>
+          )}
+        </div>
+        <div>
+          <h2 id="direction" class="visuellement-cache">{t(lang, 'equipe.direction')}</h2>
+          <p class="directrice__titre ui">{direction.data.titre}</p>
+          <h3 class="directrice__nom">{direction.data.nom}</h3>
+          {direction.data.programme && <p class="directrice__poste">{direction.data.programme}</p>}
+          <div class="prose">{Bio && <Bio />}</div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    actuels.map((g) => (
+      <section class="cadre groupe" aria-labelledby={`role-${g.role}`}>
+        <h2 id={`role-${g.role}`}>{t(lang, `equipe.${g.role}`)}</h2>
+        <ul class="membres">
+          {g.membres.map((m) => (
+            <li class="membre">
+              {m.data.photo ? (
+                <img class="membre__photo" src={m.data.photo} alt="" width="640" height="800" loading="lazy" />
+              ) : (
+                <span class="membre__photo monogramme" aria-hidden="true">
+                  {initiales(m.data.nom)}
+                </span>
+              )}
+              <h3 class="membre__nom">{m.data.nom}</h3>
+              <p class="membre__titre ui">
+                {m.data.titre}
+                {m.data.annees && <span>, {m.data.annees}</span>}
+              </p>
+              {m.data.programme && <p class="membre__detail">{m.data.programme}</p>}
+              {m.data.codirection && <p class="membre__detail">{m.data.codirection}</p>}
+              {m.data.sujet && (
+                <p class="membre__sujet">
+                  <span class="visuellement-cache">{t(lang, 'equipe.sujet')} : </span>
+                  {m.data.sujet}
+                </p>
+              )}
+              {m.data.distinctions.length > 0 && (
+                <details class="membre__distinctions">
+                  <summary class="ui">{t(lang, 'equipe.distinctions')}</summary>
+                  <ul>
+                    {m.data.distinctions.map((d) => (
+                      <li>{d}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  {
+    anciens.length > 0 && (
+      <section class="cadre groupe" aria-labelledby="anciens">
+        <h2 id="anciens">{t(lang, 'equipe.anciens')}</h2>
+        <ul class="anciens">
+          {anciens.map((m) => (
+            <li>
+              <span class="anciens__nom">{m.data.nom}</span>
+              <span class="anciens__info ui">
+                {m.data.titre}
+                {m.data.annees && `, ${m.data.annees}`}
+              </span>
+              {m.data.sujet && <span class="anciens__sujet">{m.data.sujet}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .directrice {
+    display: grid;
+    grid-template-columns: minmax(12rem, 22rem) minmax(0, 1fr);
+    gap: var(--pas-7);
+    align-items: start;
+    padding-block: var(--pas-5) var(--pas-7);
+  }
+  .directrice__photo img,
+  .monogramme--grand {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+  .directrice__titre {
+    color: var(--epinette);
+    font-weight: 600;
+    margin-bottom: var(--pas-2);
+  }
+  .directrice__nom {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-stretch: 112%;
+    margin-bottom: var(--pas-3);
+  }
+  .directrice__poste {
+    color: var(--gris-mousse);
+    font-size: 1.05rem;
+    margin-bottom: var(--pas-5);
+  }
+
+  .groupe {
+    padding-top: var(--pas-7);
+  }
+  .membres {
+    list-style: none;
+    margin: var(--pas-5) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--pas-7) var(--pas-6);
+  }
+  .membre__photo {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    margin-bottom: var(--pas-4);
+  }
+  .monogramme {
+    display: grid;
+    place-items: center;
+    background: var(--lichen);
+    color: var(--epinette);
+    font-family: var(--titre);
+    font-weight: 600;
+    font-stretch: 120%;
+    font-size: 2.6rem;
+    letter-spacing: 0.02em;
+  }
+  .monogramme--grand {
+    font-size: 4.5rem;
+  }
+  .membre__nom {
+    margin-bottom: var(--pas-1);
+  }
+  .membre__titre {
+    font-size: 0.95rem;
+    color: var(--epinette);
+    font-weight: 600;
+    margin-bottom: var(--pas-2);
+  }
+  .membre__titre span {
+    font-weight: 400;
+    color: var(--gris-mousse);
+  }
+  .membre__detail {
+    font-size: 0.98rem;
+    color: var(--gris-mousse);
+    margin-bottom: var(--pas-2);
+    line-height: 1.45;
+  }
+  .membre__sujet {
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+  .membre__distinctions summary {
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--sapin);
+    font-weight: 600;
+  }
+  .membre__distinctions ul {
+    margin: var(--pas-2) 0 0;
+    padding-left: 1.1em;
+    font-size: 0.98rem;
+    color: var(--gris-mousse);
+  }
+
+  .anciens {
+    list-style: none;
+    margin: var(--pas-5) 0 0;
+    padding: 0;
+    columns: 2 22rem;
+    column-gap: var(--pas-8);
+  }
+  .anciens li {
+    break-inside: avoid;
+    display: grid;
+    gap: var(--pas-1);
+    padding-block: var(--pas-4);
+    border-top: 1px solid var(--trait);
+  }
+  .anciens__nom {
+    font-family: var(--titre);
+    font-weight: 600;
+    color: var(--sapin);
+  }
+  .anciens__info {
+    font-size: 0.92rem;
+    color: var(--gris-mousse);
+  }
+  .anciens__sujet {
+    font-style: italic;
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+  @media (max-width: 48rem) {
+    .directrice {
+      grid-template-columns: 1fr;
+    }
+    .directrice__photo {
+      max-width: 18rem;
+    }
+  }
+</style>

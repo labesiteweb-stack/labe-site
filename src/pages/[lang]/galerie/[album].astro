@@ -1,0 +1,140 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { LANGUES, t, lien } from '../../../i18n/ui';
+import { publiees } from '../../../lib/contenu';
+
+export async function getStaticPaths() {
+  const albums = await publiees('galerie');
+  return LANGUES.flatMap((lang) => albums.map((a) => ({ params: { lang, album: a.id }, props: { a } })));
+}
+
+const { lang } = Astro.params;
+const { a } = Astro.props;
+const d = a.data;
+const quand =
+  d.date_texte ??
+  (d.date ? d.date.toLocaleDateString(lang === 'en' ? 'en-CA' : 'fr-CA', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : '');
+---
+
+<Base lang={lang} titre={d.titre} section="galerie">
+  <header class="entete-page cadre">
+    <p class="ui retour"><a href={lien(lang, 'galerie')}>{t(lang, 'galerie.retour')}</a></p>
+    <h1>{d.titre}</h1>
+    {quand && <p class="ui quand">{quand}</p>}
+    {d.description && <p class="chapo">{d.description}</p>}
+  </header>
+
+  <ul class="cadre photos" data-photos>
+    {
+      d.photos.map((p, i) => (
+        <li>
+          <a href={p} data-index={i}>
+            <img src={p} alt={`${d.titre}, photo ${i + 1}`} loading={i < 6 ? 'eager' : 'lazy'} />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <dialog class="visionneuse" data-visionneuse aria-label={d.titre}>
+    <img data-grande alt="" />
+    <div class="visionneuse__commandes ui">
+      <button type="button" data-prec>{t(lang, 'galerie.precedente')}</button>
+      <span data-compteur></span>
+      <button type="button" data-suiv>{t(lang, 'galerie.suivante')}</button>
+      <button type="button" data-fermer>{t(lang, 'galerie.fermer')}</button>
+    </div>
+  </dialog>
+</Base>
+
+<script>
+  const liens = [...document.querySelectorAll<HTMLAnchorElement>('[data-photos] a')];
+  const dlg = document.querySelector<HTMLDialogElement>('[data-visionneuse]');
+  if (dlg && liens.length) {
+    const img = dlg.querySelector<HTMLImageElement>('[data-grande]')!;
+    const compteur = dlg.querySelector<HTMLElement>('[data-compteur]')!;
+    let i = 0;
+    const montrer = (n: number) => {
+      i = (n + liens.length) % liens.length;
+      img.src = liens[i].href;
+      img.alt = liens[i].querySelector('img')?.alt ?? '';
+      compteur.textContent = `${i + 1} / ${liens.length}`;
+    };
+    liens.forEach((a, n) =>
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        montrer(n);
+        dlg.showModal();
+      }),
+    );
+    dlg.querySelector('[data-prec]')!.addEventListener('click', () => montrer(i - 1));
+    dlg.querySelector('[data-suiv]')!.addEventListener('click', () => montrer(i + 1));
+    dlg.querySelector('[data-fermer]')!.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') montrer(i - 1);
+      if (e.key === 'ArrowRight') montrer(i + 1);
+    });
+    dlg.addEventListener('click', (e) => {
+      if (e.target === dlg) dlg.close();
+    });
+  }
+</script>
+
+<style>
+  .retour {
+    margin-bottom: var(--pas-5);
+  }
+  .quand {
+    color: var(--epinette);
+    font-weight: 600;
+  }
+  .photos {
+    list-style: none;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--pas-4);
+  }
+  .photos img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+  .photos a:hover img {
+    opacity: 0.88;
+  }
+  .visionneuse {
+    border: 0;
+    padding: 0;
+    max-width: min(92vw, 1600px);
+    max-height: 92vh;
+    background: var(--sapin);
+  }
+  .visionneuse::backdrop {
+    background: rgba(13, 26, 18, 0.88);
+  }
+  .visionneuse img {
+    max-height: calc(92vh - 4rem);
+    width: auto;
+    margin-inline: auto;
+  }
+  .visionneuse__commandes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--pas-4);
+    padding: var(--pas-3);
+    color: var(--blanc);
+    font-size: 0.95rem;
+  }
+  .visionneuse__commandes button {
+    font: inherit;
+    background: none;
+    color: var(--blanc);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+  }
+</style>

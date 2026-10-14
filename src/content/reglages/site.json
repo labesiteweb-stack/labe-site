@@ -1,0 +1,25 @@
+{
+  "nom": "Laboratoire Activité physique et Bien-Être",
+  "sigle": "LABE",
+  "courriel": "isabelle.dore@umontreal.ca",
+  "telephone": "514 343-6111, poste 41834",
+  "adresses": [
+    {
+      "nom": "Centre de recherche du CHUM",
+      "lignes": [
+        "850, rue Saint-Denis, bureau S03.328",
+        "Montréal (Québec)  H2X 0A9"
+      ]
+    },
+    {
+      "nom": "Université de Montréal",
+      "lignes": [
+        "École de kinésiologie et des sciences de l'activité physique",
+        "2100, boulevard Édouard-Montpetit, bureau 7209",
+        "Montréal (Québec)  H3T 1J4"
+      ]
+    }
+  ],
+  "instagram": "https://www.instagram.com/labe.udem/",
+  "linkedin": "https://www.linkedin.com/company/labe-laboratoire-activit%C3%A9-physique-et-bien-%C3%AAtre-isabelle-dor%C3%A9-phd/"
+}

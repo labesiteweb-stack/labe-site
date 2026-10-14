@@ -1,0 +1,309 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getEntry, render } from 'astro:content';
+import { LANGUES, t, lien, dateLongue } from '../../i18n/ui';
+import { parLangue, publiees, slug, enCours, periode } from '../../lib/contenu';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const page = (await getEntry('pages', `${lang}/accueil`))!;
+const { Content } = await render(page);
+
+const projets = (await parLangue('projets', lang))
+  .filter((p) => p.data.role !== 'co-chercheuse' && enCours(p.data.fin) && p.data.logo)
+  .sort((a, b) => b.data.debut - a.data.debut);
+
+const nouvelles = (await parLangue('nouvelles', lang))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+
+const partenaires = (await publiees('partenaires')).sort((a, b) => a.data.ordre - b.data.ordre);
+const groupes = (['affiliation', 'financement', 'partenaire'] as const).map((cat) => ({
+  cat,
+  items: partenaires.filter((p) => p.data.categorie === cat),
+}));
+---
+
+<Base lang={lang}>
+  <section class="accueil-tete cadre">
+    <h1>{page.data.titre}</h1>
+    <div class="accueil-tete__texte">
+      {page.data.accroche && <p class="chapo">{page.data.accroche}</p>}
+      <div class="accueil-tete__intro"><Content /></div>
+      <p class="accueil-tete__actions">
+        <a class="bouton" href={lien(lang, 'recherche')}>{t(lang, 'accueil.voir_projets')}</a>
+        <a class="bouton bouton--contour" href={lien(lang, 'nous-joindre')}>{t(lang, 'accueil.rejoindre')}</a>
+      </p>
+    </div>
+  </section>
+
+  <figure class="crete">
+    <img
+      src="/images/accueil/equipe-crchum.webp"
+      alt="Les membres du LABE devant le Centre de recherche du CHUM"
+      width="2000"
+      height="1333"
+      fetchpriority="high"
+    />
+  </figure>
+
+  <section class="section cadre" aria-labelledby="axes">
+    <h2 id="axes">{t(lang, 'accueil.axes')}</h2>
+    <ul class="axes">
+      {
+        page.data.axes.map((axe) => (
+          <li>
+            <h3>{axe.titre}</h3>
+            <p>{axe.texte}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    projets.length > 0 && (
+      <section class="section section--lichen" aria-labelledby="phares">
+        <div class="cadre">
+          <h2 id="phares">{t(lang, 'accueil.projets')}</h2>
+          <ul class="phares">
+            {projets.map((p) => (
+              <li>
+                <a class="phare" href={lien(lang, `recherche/${slug(p.id)}`)}>
+                  <span class="phare__logo">
+                    <img src={p.data.logo} alt="" loading="lazy" />
+                  </span>
+                  <span class="phare__titre">{p.data.titre}</span>
+                  <span class="phare__meta ui">
+                    {periode(p.data.debut, p.data.fin)}, {p.data.financement}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section cadre deux-colonnes" aria-labelledby="nouvelles">
+    <div>
+      <h2 id="nouvelles">{t(lang, 'accueil.nouvelles')}</h2>
+      <p><a class="ui" href={lien(lang, 'actualites')}>{t(lang, 'accueil.toutes_nouvelles')}</a></p>
+    </div>
+    <ol class="fil">
+      {
+        nouvelles.map((n) => (
+          <li>
+            <time class="ui" datetime={n.data.date.toISOString().slice(0, 10)}>
+              {n.data.date_texte ?? dateLongue(n.data.date, lang)}
+            </time>
+            <h3>{n.data.titre}</h3>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="section cadre" aria-labelledby="partenaires">
+    <h2 id="partenaires">{t(lang, 'accueil.partenaires')}</h2>
+    {
+      groupes.map(({ cat, items }) => (
+        <div class="logos">
+          <h3 class="logos__titre">{t(lang, `partenaires.${cat}`)}</h3>
+          <ul>
+            {items.map((p) => (
+              <li>
+                {p.data.lien ? (
+                  <a href={p.data.lien}>
+                    <img src={p.data.logo} alt={p.data.nom} loading="lazy" />
+                  </a>
+                ) : (
+                  <img src={p.data.logo} alt={p.data.nom} loading="lazy" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .accueil-tete {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: var(--pas-6) var(--pas-8);
+    align-items: end;
+    padding-top: var(--pas-8);
+    padding-bottom: var(--pas-6);
+  }
+  .accueil-tete h1 {
+    margin: 0;
+    font-size: clamp(2.5rem, 6.2vw, 5rem);
+    font-stretch: 122%;
+    line-height: 0.98;
+  }
+  .accueil-tete__texte .chapo {
+    color: var(--encre);
+  }
+  .accueil-tete__intro :global(p) {
+    color: var(--gris-mousse);
+    font-size: 1.05rem;
+  }
+  .accueil-tete__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-3);
+    margin: var(--pas-5) 0 0;
+  }
+
+  /* La photo d'équipe découpée selon la crête du logo : le pic du A et le sapin. */
+  .crete {
+    margin: 0;
+    position: relative;
+  }
+  .crete img {
+    width: 100%;
+    height: clamp(18rem, 52vw, 40rem);
+    object-fit: cover;
+    object-position: 50% 62%;
+    clip-path: polygon(
+      0 34%,
+      14% 20%,
+      24% 28%,
+      41% 2%,
+      55% 24%,
+      63% 16%,
+      70% 22%,
+      86% 8%,
+      100% 26%,
+      100% 100%,
+      0 100%
+    );
+  }
+
+  .axes {
+    list-style: none;
+    margin: var(--pas-6) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--pas-6) var(--pas-8);
+  }
+  .axes li {
+    border-top: 3px solid var(--epinette);
+    padding-top: var(--pas-4);
+  }
+  .axes p {
+    color: var(--gris-mousse);
+  }
+
+  .phares {
+    list-style: none;
+    margin: var(--pas-6) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--pas-6);
+  }
+  .phare {
+    display: grid;
+    gap: var(--pas-3);
+    text-decoration: none;
+    color: var(--encre);
+  }
+  .phare__logo {
+    display: flex;
+    align-items: center;
+    height: 4.5rem;
+  }
+  .phare__logo img {
+    max-height: 100%;
+    max-width: 14rem;
+    width: auto;
+  }
+  .phare__titre {
+    font-family: var(--titre);
+    font-weight: 600;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    color: var(--sapin);
+  }
+  .phare:hover .phare__titre {
+    text-decoration: underline;
+    text-decoration-color: var(--epinette);
+    text-underline-offset: 0.2em;
+  }
+  .phare__meta {
+    font-size: 0.9rem;
+    color: var(--gris-mousse);
+  }
+
+  .deux-colonnes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--pas-6) var(--pas-8);
+  }
+  .fil {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .fil li {
+    padding-block: var(--pas-4);
+    border-top: 1px solid var(--trait);
+  }
+  .fil li:last-child {
+    border-bottom: 1px solid var(--trait);
+  }
+  .fil time {
+    font-size: 0.9rem;
+    color: var(--gris-mousse);
+  }
+  .fil h3 {
+    margin: var(--pas-1) 0 0;
+    font-weight: 550;
+  }
+
+  .logos {
+    margin-top: var(--pas-6);
+  }
+  .logos__titre {
+    font-size: 1rem;
+    color: var(--gris-mousse);
+    font-weight: 550;
+  }
+  .logos ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pas-6) var(--pas-7);
+  }
+  .logos img {
+    height: 3.25rem;
+    width: auto;
+    max-width: 13rem;
+    object-fit: contain;
+  }
+
+  @media (max-width: 54rem) {
+    .accueil-tete,
+    .deux-colonnes {
+      grid-template-columns: 1fr;
+    }
+    .axes {
+      grid-template-columns: 1fr;
+    }
+    .crete img {
+      clip-path: polygon(0 18%, 22% 8%, 41% 0, 60% 12%, 82% 4%, 100% 14%, 100% 100%, 0 100%);
+    }
+  }
+</style>

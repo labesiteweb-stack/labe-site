@@ -1,0 +1,261 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LANGUES, t } from '../../i18n/ui';
+import { publiees, surligner, nomsAsurligner } from '../../lib/contenu';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const noms = await nomsAsurligner(lang);
+const pubs = await publiees('publications');
+
+const types = ['article', 'soumis', 'transfert', 'abrege', 'livre', 'rapport', 'formation'] as const;
+const sections = types
+  .map((type) => {
+    const liste = pubs
+      .filter((p) => p.data.type === type)
+      .sort((a, b) => b.data.annee - a.data.annee || a.data.auteurs.localeCompare(b.data.auteurs));
+    const annees = [...new Set(liste.map((p) => p.data.annee))];
+    return { type, total: liste.length, annees: annees.map((annee) => ({ annee, items: liste.filter((p) => p.data.annee === annee) })) };
+  })
+  .filter((s) => s.total > 0);
+---
+
+<Base lang={lang} titre={t(lang, 'publications.titre')} section="publications">
+  <header class="entete-page cadre">
+    <h1>{t(lang, 'publications.titre')}</h1>
+    <p class="chapo">{t(lang, 'publications.intro')}</p>
+  </header>
+
+  <div class="cadre outils" data-outils hidden>
+    <label class="outils__recherche">
+      <span class="visuellement-cache">{t(lang, 'publications.recherche')}</span>
+      <input type="search" placeholder={t(lang, 'publications.recherche')} data-recherche />
+    </label>
+    <div class="outils__types ui" role="group" aria-label="Type de publication">
+      <button type="button" aria-pressed="true" data-type="">{t(lang, 'publications.tous')}</button>
+      {
+        sections.map((s) => (
+          <button type="button" aria-pressed="false" data-type={s.type}>
+            {t(lang, `type.${s.type}`)} <span>{s.total}</span>
+          </button>
+        ))
+      }
+    </div>
+    <p class="outils__vide" data-vide hidden>{t(lang, 'publications.aucun')}</p>
+  </div>
+
+  {
+    sections.map((s) => (
+      <section class="cadre type" data-section={s.type} aria-labelledby={`type-${s.type}`}>
+        <h2 id={`type-${s.type}`}>{t(lang, `type.${s.type}`)}</h2>
+        {s.annees.map((a) => (
+          <div class="annee" data-annee>
+            <h3 class="annee__titre ui">{a.annee}</h3>
+            <ul class="refs">
+              {a.items.map((p) => (
+                <li class="ref" data-ref>
+                  <span class="ref__auteurs" set:html={surligner(p.data.auteurs, noms) + (/[.)]$/.test(p.data.auteurs) ? '' : '.')} />{' '}
+                  <span class="ref__titre">{p.data.titre}.</span>{' '}
+                  {p.data.source && <cite class="ref__source">{p.data.source}</cite>}
+                  {p.data.details && <span class="ref__details">, {p.data.details}</span>}
+                  {p.data.statut && <span class="ref__statut ui">{p.data.statut}</span>}
+                  {p.data.lien && (
+                    <a class="ref__lien ui" href={p.data.lien}>
+                      {t(lang, 'publications.lien')}
+                      <span class="visuellement-cache"> : {p.data.titre}</span>
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+    ))
+  }
+</Base>
+
+<script>
+  const outils = document.querySelector<HTMLElement>('[data-outils]');
+  if (outils) {
+    outils.hidden = false;
+    const champ = outils.querySelector<HTMLInputElement>('[data-recherche]')!;
+    const boutons = [...outils.querySelectorAll<HTMLButtonElement>('[data-type]')];
+    const vide = outils.querySelector<HTMLElement>('[data-vide]')!;
+    const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+    let type = '';
+    const normaliser = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const index = new Map([...document.querySelectorAll<HTMLElement>('[data-ref]')].map((li) => [li, normaliser(li.textContent ?? '')]));
+
+    const filtrer = () => {
+      const q = normaliser(champ.value.trim());
+      let total = 0;
+      for (const section of sections) {
+        let visiblesSection = 0;
+        const bonType = !type || section.dataset.section === type;
+        for (const annee of section.querySelectorAll<HTMLElement>('[data-annee]')) {
+          let visibles = 0;
+          for (const li of annee.querySelectorAll<HTMLElement>('[data-ref]')) {
+            const ok = bonType && (!q || index.get(li)!.includes(q));
+            li.hidden = !ok;
+            if (ok) visibles++;
+          }
+          annee.hidden = visibles === 0;
+          visiblesSection += visibles;
+        }
+        section.hidden = visiblesSection === 0;
+        total += visiblesSection;
+      }
+      vide.hidden = total > 0;
+    };
+
+    champ.addEventListener('input', filtrer);
+    for (const b of boutons) {
+      b.addEventListener('click', () => {
+        type = b.dataset.type ?? '';
+        boutons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        filtrer();
+      });
+    }
+  }
+</script>
+
+<style>
+  .outils {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--blanc);
+    padding-block: var(--pas-4);
+    border-bottom: 1px solid var(--trait);
+    display: grid;
+    gap: var(--pas-3);
+  }
+  .outils__recherche input {
+    width: 100%;
+    max-width: 34rem;
+    font: inherit;
+    font-size: 1.05rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--trait);
+    border-radius: 999px;
+    background: var(--brume);
+    color: var(--encre);
+  }
+  .outils__recherche input:focus-visible {
+    background: var(--blanc);
+  }
+  .outils__types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-2);
+  }
+  .outils__types button {
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--trait);
+    background: var(--blanc);
+    color: var(--sapin);
+    cursor: pointer;
+  }
+  .outils__types button span {
+    color: var(--gris-mousse);
+    margin-left: 0.2em;
+  }
+  .outils__types button[aria-pressed='true'] {
+    background: var(--sapin);
+    border-color: var(--sapin);
+    color: var(--blanc);
+  }
+  .outils__types button[aria-pressed='true'] span {
+    color: var(--lichen);
+  }
+  .outils__vide {
+    margin: 0;
+    color: var(--gris-mousse);
+  }
+
+  .type {
+    padding-top: var(--pas-7);
+  }
+  .annee {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: var(--pas-4);
+    border-top: 1px solid var(--trait);
+    padding-top: var(--pas-4);
+    margin-top: var(--pas-4);
+  }
+  .annee__titre {
+    font-size: 1.05rem;
+    color: var(--epinette);
+    font-weight: 650;
+    position: sticky;
+    top: 8.5rem;
+    align-self: start;
+  }
+  .refs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .ref {
+    font-size: 1.02rem;
+    line-height: 1.55;
+    max-width: 52rem;
+    padding-bottom: var(--pas-4);
+  }
+  .ref + .ref {
+    padding-top: var(--pas-1);
+  }
+  .ref__titre {
+    color: var(--encre);
+  }
+  .ref__auteurs {
+    color: var(--gris-mousse);
+  }
+  .ref__source {
+    font-style: italic;
+  }
+  .ref__statut {
+    display: inline-block;
+    margin-left: var(--pas-2);
+    font-size: 0.8rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--lichen);
+    color: var(--sapin);
+    vertical-align: 0.1em;
+  }
+  .ref__lien {
+    margin-left: var(--pas-2);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  @media (max-width: 40rem) {
+    .outils {
+      position: static;
+    }
+    .outils__types {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: var(--pas-2);
+      scrollbar-width: thin;
+    }
+    .outils__types button {
+      flex: none;
+    }
+    .annee {
+      grid-template-columns: 1fr;
+      gap: var(--pas-2);
+    }
+    .annee__titre {
+      position: static;
+    }
+  }
+</style>

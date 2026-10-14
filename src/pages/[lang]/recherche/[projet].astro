@@ -1,0 +1,130 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { render } from 'astro:content';
+import { LANGUES, t, lien } from '../../../i18n/ui';
+import { parLangue, slug, periode, enCours } from '../../../lib/contenu';
+
+export async function getStaticPaths() {
+  const chemins = [];
+  for (const lang of LANGUES) {
+    for (const p of await parLangue('projets', lang)) {
+      chemins.push({ params: { lang, projet: slug(p.id) }, props: { p } });
+    }
+  }
+  return chemins;
+}
+
+const { lang } = Astro.params;
+const { p } = Astro.props;
+const { Content } = await render(p);
+const d = p.data;
+---
+
+<Base lang={lang} titre={d.titre} section="recherche">
+  <article class="cadre fiche">
+    <p class="fiche__retour ui"><a href={lien(lang, 'recherche')}>{t(lang, 'projets.retour')}</a></p>
+    {d.logo && <img class="fiche__logo" src={d.logo} alt="" />}
+    <h1 class="fiche__titre">{d.titre}</h1>
+    <p class="fiche__periode ui">
+      {periode(d.debut, d.fin)}, {enCours(d.fin) ? t(lang, 'projets.statut_en_cours') : t(lang, 'projets.statut_termine')}
+    </p>
+
+    <div class="fiche__corps">
+      <div class="prose"><Content /></div>
+      <dl class="fiche__infos">
+        <div>
+          <dt>{t(lang, 'projets.financement')}</dt>
+          <dd>{d.financement}</dd>
+        </div>
+        {
+          d.chercheur_principal && (
+            <div>
+              <dt>{t(lang, 'projets.chercheur_principal')}</dt>
+              <dd>{d.chercheur_principal}</dd>
+            </div>
+          )
+        }
+        {
+          d.co_chercheurs && (
+            <div>
+              <dt>{t(lang, 'projets.co_chercheurs')}</dt>
+              <dd>{d.co_chercheurs}</dd>
+            </div>
+          )
+        }
+        {
+          d.partenaires && (
+            <div>
+              <dt>{t(lang, 'projets.partenaires')}</dt>
+              <dd>{d.partenaires}</dd>
+            </div>
+          )
+        }
+        {
+          d.lien && (
+            <div>
+              <dt>{t(lang, 'projets.site')}</dt>
+              <dd>
+                <a href={d.lien}>{new URL(d.lien).hostname.replace(/^www\./, '')}</a>
+              </dd>
+            </div>
+          )
+        }
+      </dl>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .fiche {
+    padding-top: var(--pas-7);
+  }
+  .fiche__retour {
+    margin-bottom: var(--pas-6);
+  }
+  .fiche__logo {
+    height: 4rem;
+    width: auto;
+    margin-bottom: var(--pas-5);
+  }
+  .fiche__titre {
+    font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+    font-stretch: 108%;
+    max-width: 52rem;
+    line-height: 1.12;
+  }
+  .fiche__periode {
+    color: var(--epinette);
+    font-weight: 600;
+  }
+  .fiche__corps {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: var(--pas-8);
+    margin-top: var(--pas-6);
+  }
+  .fiche__infos {
+    margin: 0;
+    border-top: 3px solid var(--epinette);
+  }
+  .fiche__infos > div {
+    padding-block: var(--pas-4);
+    border-bottom: 1px solid var(--trait);
+  }
+  .fiche__infos dt {
+    font-family: var(--titre);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--sapin);
+  }
+  .fiche__infos dd {
+    margin: var(--pas-1) 0 0;
+    color: var(--gris-mousse);
+    font-size: 1rem;
+  }
+  @media (max-width: 54rem) {
+    .fiche__corps {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

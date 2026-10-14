@@ -1,0 +1,185 @@
+---
+import Base from '../../layouts/Base.astro';
+import { render } from 'astro:content';
+import { LANGUES, t, dateLongue } from '../../i18n/ui';
+import { parLangue, publiees } from '../../lib/contenu';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const nouvelles = await Promise.all(
+  (await parLangue('nouvelles', lang))
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+    .map(async (n) => ({ n, Corps: (await render(n)).Content })),
+);
+const annees = [...new Set(nouvelles.map(({ n }) => n.data.date.getUTCFullYear()))];
+
+const medias = (await publiees('medias')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const moisAnnee = (d: Date) =>
+  d.toLocaleDateString(lang === 'en' ? 'en-CA' : 'fr-CA', { year: 'numeric', month: 'long', timeZone: 'UTC' });
+---
+
+<Base lang={lang} titre={t(lang, 'actualites.titre')} section="actualites">
+  <header class="entete-page cadre">
+    <h1>{t(lang, 'actualites.titre')}</h1>
+    <p class="chapo">{t(lang, 'actualites.intro')}</p>
+    <nav class="sommaire ui" aria-label={t(lang, 'actualites.titre')}>
+      <a href="#nouvelles">{t(lang, 'actualites.nouvelles')}</a>
+      <a href="#medias">{t(lang, 'actualites.medias')}</a>
+    </nav>
+  </header>
+
+  <section class="cadre" id="nouvelles" aria-labelledby="nouvelles-titre">
+    <h2 id="nouvelles-titre" class="visuellement-cache">{t(lang, 'actualites.nouvelles')}</h2>
+    {
+      annees.map((annee) => (
+        <div class="annee">
+          <h3 class="annee__titre ui">{annee}</h3>
+          <ol class="nouvelles">
+            {nouvelles
+              .filter(({ n }) => n.data.date.getUTCFullYear() === annee)
+              .map(({ n, Corps }) => (
+                <li class="nouvelle">
+                  <p class="nouvelle__meta ui">
+                    <time datetime={n.data.date.toISOString().slice(0, 10)}>
+                      {n.data.date_texte ?? dateLongue(n.data.date, lang)}
+                    </time>
+                    {n.data.categorie === 'distinction' && <span class="pastille">{t(lang, 'actualites.distinction')}</span>}
+                  </p>
+                  <h4 class="nouvelle__titre">{n.data.titre}</h4>
+                  <div class="prose nouvelle__corps">
+                    <Corps />
+                  </div>
+                  {n.data.lien && (
+                    <p class="nouvelle__lien ui">
+                      <a href={n.data.lien}>{t(lang, 'actualites.en_savoir_plus')}</a>
+                    </p>
+                  )}
+                </li>
+              ))}
+          </ol>
+        </div>
+      ))
+    }
+  </section>
+
+  <section class="section section--lichen medias-bloc" id="medias" aria-labelledby="medias-titre">
+    <div class="cadre">
+      <h2 id="medias-titre">{t(lang, 'actualites.medias')}</h2>
+      <ul class="medias">
+        {
+          medias.map((m) => (
+            <li>
+              <span class="medias__date ui">{m.data.date_texte ?? moisAnnee(m.data.date)}</span>
+              <span class="medias__media ui">{m.data.media}</span>
+              {m.data.lien ? <a class="medias__titre" href={m.data.lien}>{m.data.titre}</a> : <span class="medias__titre">{m.data.titre}</span>}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sommaire {
+    display: flex;
+    gap: var(--pas-5);
+    margin-top: var(--pas-5);
+    font-weight: 600;
+  }
+  .annee {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: var(--pas-4);
+    border-top: 1px solid var(--trait);
+    padding-top: var(--pas-5);
+    margin-top: var(--pas-5);
+  }
+  .annee__titre {
+    font-size: 1.05rem;
+    color: var(--epinette);
+    font-weight: 650;
+    position: sticky;
+    top: var(--pas-4);
+    align-self: start;
+  }
+  .nouvelles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--pas-6);
+  }
+  .nouvelle__meta {
+    display: flex;
+    gap: var(--pas-3);
+    align-items: center;
+    font-size: 0.92rem;
+    color: var(--gris-mousse);
+    margin-bottom: var(--pas-2);
+  }
+  .pastille {
+    font-size: 0.8rem;
+    padding: 0.05rem 0.55rem;
+    border-radius: 999px;
+    background: var(--lichen);
+    color: var(--sapin);
+    font-weight: 600;
+  }
+  .nouvelle__titre {
+    font-size: 1.3rem;
+    font-weight: 600;
+    max-width: 44rem;
+    margin-bottom: var(--pas-3);
+  }
+  .nouvelle__corps {
+    font-size: 1.05rem;
+  }
+  .nouvelle__lien {
+    margin: var(--pas-2) 0 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .medias-bloc {
+    margin-top: var(--pas-8);
+  }
+  .medias {
+    list-style: none;
+    margin: var(--pas-5) 0 0;
+    padding: 0;
+  }
+  .medias li {
+    display: grid;
+    grid-template-columns: 9rem 16rem minmax(0, 1fr);
+    gap: var(--pas-4);
+    padding-block: var(--pas-3);
+    border-top: 1px solid var(--trait);
+    font-size: 1.02rem;
+  }
+  .medias__date {
+    color: var(--gris-mousse);
+    font-size: 0.92rem;
+  }
+  .medias__media {
+    font-size: 0.92rem;
+    color: var(--sapin);
+    font-weight: 600;
+  }
+  @media (max-width: 54rem) {
+    .medias li {
+      grid-template-columns: 1fr;
+      gap: var(--pas-1);
+    }
+  }
+  @media (max-width: 40rem) {
+    .annee {
+      grid-template-columns: 1fr;
+    }
+    .annee__titre {
+      position: static;
+    }
+  }
+</style>

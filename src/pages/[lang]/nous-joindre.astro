@@ -1,0 +1,138 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getEntry } from 'astro:content';
+import { LANGUES, t } from '../../i18n/ui';
+import { paragraphes } from '../../lib/contenu';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const page = (await getEntry('pages', `${lang}/contact`))!.data;
+const site = (await getEntry('reglages', 'site'))!.data;
+---
+
+<Base lang={lang} titre={page.titre} section="contact">
+  <header class="entete-page cadre">
+    <h1>{page.titre}</h1>
+    {page.accroche && <p class="chapo">{page.accroche}</p>}
+  </header>
+
+  <div class="cadre contact">
+    <div class="voies">
+      {
+        page.sections.map((s) => (
+          <section class="voie">
+            <h2>{s.titre}</h2>
+            {paragraphes(s.texte).map((p) => (
+              <p>{p}</p>
+            ))}
+            {s.bouton_texte && s.bouton_lien && (
+              <a class="bouton bouton--contour" href={s.bouton_lien}>
+                {s.bouton_texte}
+              </a>
+            )}
+          </section>
+        ))
+      }
+    </div>
+
+    <aside class="coordonnees" id="coordonnees" aria-labelledby="coord-titre">
+      <h2 id="coord-titre">{t(lang, 'contact.coordonnees')}</h2>
+      <dl>
+        {
+          site.courriel && (
+            <div>
+              <dt>{t(lang, 'contact.courriel')}</dt>
+              <dd>
+                <a href={`mailto:${site.courriel}`}>{site.courriel}</a>
+              </dd>
+            </div>
+          )
+        }
+        {
+          site.telephone && (
+            <div>
+              <dt>{t(lang, 'contact.telephone')}</dt>
+              <dd>{site.telephone}</dd>
+            </div>
+          )
+        }
+        {
+          site.adresses.map((a) => (
+            <div>
+              <dt>{a.nom}</dt>
+              <dd>
+                {a.lignes.map((l, i) => (
+                  <>
+                    {i > 0 && <br />}
+                    {l}
+                  </>
+                ))}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 1fr);
+    gap: var(--pas-8);
+    align-items: start;
+  }
+  .voies {
+    display: grid;
+    gap: var(--pas-7);
+  }
+  .voie {
+    border-top: 3px solid var(--epinette);
+    padding-top: var(--pas-4);
+  }
+  .voie h2 {
+    font-size: 1.6rem;
+  }
+  .voie .bouton {
+    margin-top: var(--pas-2);
+  }
+  .coordonnees {
+    background: var(--brume);
+    padding: var(--pas-6);
+    position: sticky;
+    top: var(--pas-4);
+    scroll-margin-top: var(--pas-4);
+  }
+  .coordonnees h2 {
+    font-size: 1.35rem;
+  }
+  .coordonnees dl {
+    margin: 0;
+  }
+  .coordonnees dl > div + div {
+    margin-top: var(--pas-4);
+  }
+  .coordonnees dt {
+    font-family: var(--titre);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--sapin);
+  }
+  .coordonnees dd {
+    margin: var(--pas-1) 0 0;
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+  @media (max-width: 54rem) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+    .coordonnees {
+      position: static;
+    }
+  }
+</style>

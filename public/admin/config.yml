@@ -1,0 +1,420 @@
+# Configuration de l'interface de gestion du contenu (Sveltia CMS).
+# Chaque collection correspond à un dossier de src/content/ et à son schéma dans src/content.config.ts.
+# Si un champ est ajouté ou retiré ici, il faut faire la même chose dans src/content.config.ts.
+
+backend:
+  name: github
+  # À REMPLIR à la création du dépôt : compte GitHub dédié / nom du dépôt
+  repo: COMPTE-DEDIE/labe-site
+  branch: main
+  # À REMPLIR après le déploiement du service d'authentification sur Cloudflare (voir docs/mise-en-place-comptes.md)
+  # base_url: https://sveltia-cms-auth.SOUS-DOMAINE.workers.dev
+  auth_methods: [oauth, token]
+  commit_messages:
+    create: 'Ajout : {{collection}} « {{slug}} »'
+    update: 'Modification : {{collection}} « {{slug}} »'
+    delete: 'Suppression : {{collection}} « {{slug}} »'
+    uploadMedia: 'Ajout du fichier « {{path}} »'
+    deleteMedia: 'Suppression du fichier « {{path}} »'
+
+app_title: LABE, gestion du contenu
+logo:
+  src: /favicon.png
+# À REMPLIR à la mise en ligne
+site_url: https://labe.example.org
+display_url: https://labe.example.org
+publish_mode: simple
+
+output:
+  # Ne pas écrire les champs facultatifs laissés vides
+  omit_empty_optional_fields: true
+
+media_folder: /public/images/televersements
+public_folder: /images/televersements
+media_libraries:
+  default:
+    config:
+      max_file_size: 15000000
+      slugify_filename: true
+      transformations:
+        raster_image:
+          format: webp
+          quality: 80
+          width: 2000
+          height: 2000
+        svg:
+          optimize: true
+
+slug:
+  encoding: ascii
+  maxlength: 70
+  clean_accents: true
+  sanitize_replacement: '-'
+
+i18n:
+  structure: multiple_folders
+  # Ajouter « en » ici le jour où la version anglaise est prête (voir README).
+  locales: [fr]
+  default_locale: fr
+
+collections:
+  # ------------------------------------------------------------------ Actualités
+  - name: nouvelles
+    label: Nouvelles
+    label_singular: Nouvelle
+    description: Les nouvelles du laboratoire et les distinctions de ses membres. Les plus récentes s'affichent aussi sur l'accueil.
+    icon: newspaper
+    folder: src/content/nouvelles
+    create: true
+    i18n: true
+    slug: '{{year}}-{{month}}-{{day}}-{{titre}}'
+    identifier_field: titre
+    summary: '{{date | date("YYYY-MM-DD")}}  {{titre}}'
+    sortable_fields:
+      fields: [date, titre]
+      default: { field: date, direction: descending }
+    view_filters:
+      filters:
+        - { name: distinctions, label: Distinctions, field: categorie, eq: distinction }
+        - { name: masquees, label: Masquées du site, field: brouillon, eq: true }
+        - { name: a-valider, label: À valider, field: a_valider, eq: true }
+    media_folder: /public/images/nouvelles
+    public_folder: /images/nouvelles
+    fields:
+      - { name: titre, label: Titre, widget: string, i18n: true }
+      - name: date
+        label: Date
+        widget: datetime
+        type: date
+        format: YYYY-MM-DD
+        i18n: duplicate
+      - name: date_texte
+        label: Date affichée (facultatif)
+        widget: string
+        required: false
+        i18n: true
+        hint: Pour une date approximative, par exemple « Mai 2025 ». Sinon, laisser vide.
+      - name: categorie
+        label: Type
+        widget: select
+        i18n: duplicate
+        default: nouvelle
+        options:
+          - { label: Nouvelle, value: nouvelle }
+          - { label: 'Distinction (prix, bourse, subvention)', value: distinction }
+      - name: body
+        label: Texte
+        widget: markdown
+        i18n: true
+        buttons: [bold, italic, link, bulleted-list, numbered-list]
+        editor_components: []
+      - { name: lien, label: Lien « En savoir plus » (facultatif), widget: string, required: false, i18n: duplicate, hint: 'Adresse complète, qui commence par https://' }
+      - { name: image, label: Image (facultatif), widget: image, required: false, i18n: duplicate }
+      - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+
+  - name: medias
+    label: Médias
+    label_singular: Passage dans les médias
+    icon: mic
+    folder: src/content/medias
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{titre}}'
+    identifier_field: titre
+    summary: '{{date | date("YYYY-MM-DD")}}  {{media}} : {{titre}}'
+    sortable_fields:
+      fields: [date, media, titre]
+      default: { field: date, direction: descending }
+    fields:
+      - { name: titre, label: "Titre de l'article, de l'émission ou de la vidéo", widget: string }
+      - { name: media, label: Média, widget: string, hint: 'Par exemple « Le Devoir » ou « UdeM Nouvelles »' }
+      - { name: date, label: Date, widget: datetime, type: date, format: YYYY-MM-DD }
+      - { name: date_texte, label: Date affichée (facultatif), widget: string, required: false, hint: 'Pour une date approximative, par exemple « Été 2023 ».' }
+      - { name: lien, label: Lien, widget: string, required: false }
+      - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
+
+  # ------------------------------------------------------------------ Recherche
+  - name: projets
+    label: Projets
+    label_singular: Projet
+    description: Un projet est affiché « en cours » tant que son année de fin n'est pas passée.
+    icon: science
+    folder: src/content/projets
+    create: true
+    i18n: true
+    slug: '{{titre}}'
+    identifier_field: titre
+    summary: '{{debut}}–{{fin}}  {{titre}}'
+    sortable_fields:
+      fields: [fin, debut, titre]
+      default: { field: fin, direction: descending }
+    view_filters:
+      filters:
+        - { name: diriges, label: Dirigés par le LABE, field: role, in: [principale, co-principale] }
+        - { name: contribue, label: Contribue aussi à, field: role, eq: co-chercheuse }
+        - { name: a-valider, label: À valider, field: a_valider, eq: true }
+    media_folder: /public/images/logos
+    public_folder: /images/logos
+    fields:
+      - { name: titre, label: Titre, widget: text, i18n: true }
+      - { name: debut, label: Année de début, widget: number, value_type: int, i18n: duplicate }
+      - { name: fin, label: Année de fin, widget: number, value_type: int, i18n: duplicate }
+      - { name: financement, label: Financement, widget: string, i18n: true, hint: Organisme et programme de subvention }
+      - name: role
+        label: Rôle du LABE
+        widget: select
+        i18n: duplicate
+        options:
+          - { label: Chercheuse principale, value: principale }
+          - { label: Co-chercheuse principale, value: co-principale }
+          - { label: Co-chercheuse (section « Contribue aussi à »), value: co-chercheuse }
+      - { name: chercheur_principal, label: Direction du projet (si ce n'est pas Isabelle Doré), widget: string, required: false, i18n: duplicate }
+      - { name: co_chercheurs, label: Cochercheurs, widget: text, required: false, i18n: duplicate }
+      - { name: partenaires, label: Partenaires et collaborateurs, widget: text, required: false, i18n: true }
+      - name: body
+        label: Description
+        widget: markdown
+        required: false
+        i18n: true
+        buttons: [bold, italic, link, bulleted-list, numbered-list]
+        editor_components: []
+        hint: Une description rend le titre cliquable et crée la page du projet.
+      - { name: logo, label: Logo du projet (facultatif), widget: image, required: false, i18n: duplicate }
+      - { name: lien, label: Site du projet (facultatif), widget: string, required: false, i18n: duplicate }
+      - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+
+  - name: publications
+    label: Publications
+    label_singular: Publication
+    description: "Le nom d'Isabelle Doré et ceux des membres de l'équipe sont surlignés automatiquement à partir de leur fiche."
+    icon: menu_book
+    folder: src/content/publications
+    create: true
+    slug: '{{annee}}-{{titre}}'
+    identifier_field: titre
+    summary: '{{annee}}  {{titre}}'
+    sortable_fields:
+      fields: [annee, titre, type]
+      default: { field: annee, direction: descending }
+    view_groups:
+      groups:
+        - { name: type, label: Type, field: type }
+    fields:
+      - name: type
+        label: Type
+        widget: select
+        default: article
+        options:
+          - { label: Article révisé par les pairs, value: article }
+          - { label: Article soumis, value: soumis }
+          - { label: Transfert de connaissances, value: transfert }
+          - { label: Abrégé de conférence, value: abrege }
+          - { label: Livre ou collaboration, value: livre }
+          - { label: Rapport de recherche, value: rapport }
+          - { label: Formation développée, value: formation }
+      - { name: annee, label: Année, widget: number, value_type: int }
+      - { name: statut, label: Statut (facultatif), widget: string, required: false, hint: 'Par exemple « Accepté », « Sous presse » ou « Révisé et resoumis »' }
+      - { name: auteurs, label: Auteurs, widget: text, hint: 'Format « Nom Initiales », séparés par des virgules. Ex. : Piché A, Montiel C, Doré I' }
+      - { name: titre, label: Titre, widget: text }
+      - { name: source, label: Revue ou éditeur, widget: string, required: false }
+      - { name: details, label: 'Volume, numéro et pages', widget: string, required: false }
+      - { name: lien, label: Lien (DOI ou page web), widget: string, required: false, hint: 'Adresse complète, par exemple https://doi.org/10.1234/abcd' }
+      - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
+
+  # ------------------------------------------------------------------ Équipe
+  - name: equipe
+    label: Équipe
+    label_singular: Membre
+    description: Pour un ancien membre, changer le statut au lieu de supprimer la fiche.
+    icon: group
+    folder: src/content/equipe
+    create: true
+    i18n: true
+    slug: '{{nom}}'
+    identifier_field: nom
+    summary: '{{nom}}  ({{titre}})'
+    sortable_fields:
+      fields: [ordre, nom]
+      default: { field: ordre, direction: ascending }
+    view_filters:
+      filters:
+        - { name: actuels, label: Membres actuels, field: statut, eq: actuel }
+        - { name: anciens, label: Anciens membres, field: statut, eq: ancien }
+    media_folder: /public/images/equipe
+    public_folder: /images/equipe
+    fields:
+      - { name: nom, label: Nom, widget: string, i18n: duplicate }
+      - name: statut
+        label: Statut
+        widget: select
+        i18n: duplicate
+        default: actuel
+        options:
+          - { label: Membre actuel, value: actuel }
+          - { label: Ancien membre, value: ancien }
+      - name: role
+        label: Section de la page Équipe
+        widget: select
+        i18n: duplicate
+        options:
+          - { label: Direction, value: direction }
+          - { label: Personnel de recherche, value: personnel }
+          - { label: Stagiaire postdoctoral, value: postdoc }
+          - { label: Doctorat, value: doctorat }
+          - { label: Maîtrise, value: maitrise }
+          - { label: Stage, value: stagiaire }
+      - { name: titre, label: Titre affiché, widget: string, i18n: true, hint: 'Par exemple « Doctorante » ou « Stagiaire postdoctoral »' }
+      - { name: annees, label: Années, widget: string, required: false, i18n: duplicate, hint: 'Par exemple « 2023 – présent »' }
+      - { name: programme, label: Programme ou poste, widget: string, required: false, i18n: true }
+      - { name: sujet, label: Sujet de recherche, widget: text, required: false, i18n: true }
+      - { name: codirection, label: Direction ou codirection, widget: string, required: false, i18n: true }
+      - name: distinctions
+        label: Bourses et distinctions
+        label_singular: distinction
+        widget: list
+        required: false
+        i18n: true
+        field: { name: distinction, label: Distinction, widget: string }
+      - { name: photo, label: Photo (format portrait), widget: image, required: false, i18n: duplicate }
+      - name: body
+        label: Biographie (facultatif)
+        widget: markdown
+        required: false
+        i18n: true
+        buttons: [bold, italic, link]
+        editor_components: []
+      - name: nom_publication
+        label: Nom dans les listes d'auteurs
+        label_singular: forme du nom
+        widget: list
+        required: false
+        i18n: duplicate
+        field: { name: forme, label: Forme du nom, widget: string }
+        hint: "Format « Nom Initiales », par exemple « Piché A ». Sert à surligner la personne dans les publications."
+      - { name: ordre, label: Ordre d'affichage, widget: number, value_type: int, default: 100, i18n: duplicate, hint: Les plus petits nombres s'affichent en premier dans chaque section. }
+      - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
+
+  # ------------------------------------------------------------------ Galerie
+  - name: galerie
+    label: Galerie
+    label_singular: Album
+    icon: photo_library
+    folder: src/content/galerie
+    create: true
+    slug: '{{titre}}'
+    identifier_field: titre
+    summary: '{{titre}}'
+    sortable_fields:
+      fields: [date, titre]
+      default: { field: date, direction: descending }
+    media_folder: /public/images/galerie
+    public_folder: /images/galerie
+    fields:
+      - { name: titre, label: Titre de l'album, widget: string }
+      - { name: date, label: Date, widget: datetime, type: date, format: YYYY-MM-DD, required: false }
+      - { name: date_texte, label: Date affichée (facultatif), widget: string, required: false, hint: 'Par exemple « Été 2025 » quand la date exacte est inconnue.' }
+      - { name: description, label: Description (facultatif), widget: text, required: false }
+      - { name: photos, label: Photos, widget: image, multiple: true, hint: Plusieurs photos peuvent être choisies d'un coup. L'ordre ici est l'ordre d'affichage. }
+      - { name: couverture, label: Photo de couverture (facultatif), widget: image, required: false, hint: "Sinon, la première photo de l'album est utilisée." }
+      - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
+
+  - name: partenaires
+    label: Partenaires
+    label_singular: Partenaire
+    icon: handshake
+    folder: src/content/partenaires
+    create: true
+    slug: '{{nom}}'
+    identifier_field: nom
+    summary: '{{nom}}'
+    sortable_fields:
+      fields: [ordre, nom]
+      default: { field: ordre, direction: ascending }
+    media_folder: /public/images/logos
+    public_folder: /images/logos
+    fields:
+      - { name: nom, label: Nom, widget: string }
+      - { name: logo, label: Logo, widget: image, hint: Idéalement un PNG à fond transparent. }
+      - name: categorie
+        label: Catégorie
+        widget: select
+        options:
+          - { label: Affiliation, value: affiliation }
+          - { label: Organisme subventionnaire, value: financement }
+          - { label: Partenaire, value: partenaire }
+      - { name: lien, label: Site web (facultatif), widget: string, required: false }
+      - { name: ordre, label: Ordre d'affichage, widget: number, value_type: int, default: 100 }
+
+  # ------------------------------------------------------------------ Pages fixes
+  - name: pages
+    label: Pages
+    icon: description
+    i18n: true
+    files:
+      - name: accueil
+        label: Accueil
+        file: src/content/pages/{{locale}}/accueil.md
+        i18n: true
+        fields:
+          - { name: titre, label: Titre principal, widget: string, i18n: true }
+          - { name: accroche, label: Phrase d'accroche, widget: text, i18n: true }
+          - name: body
+            label: Présentation
+            widget: markdown
+            i18n: true
+            buttons: [bold, italic, link]
+            editor_components: []
+          - name: axes
+            label: Ce que nous étudions
+            label_singular: axe
+            widget: list
+            i18n: true
+            summary: '{{titre}}'
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text }
+      - name: contact
+        label: Nous joindre
+        file: src/content/pages/{{locale}}/contact.md
+        i18n: true
+        fields:
+          - { name: titre, label: Titre, widget: string, i18n: true }
+          - { name: accroche, label: Phrase d'introduction, widget: text, i18n: true }
+          - name: sections
+            label: Sections
+            label_singular: section
+            widget: list
+            i18n: true
+            summary: '{{titre}}'
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text, hint: Laisser une ligne vide entre deux paragraphes. }
+              - { name: bouton_texte, label: Texte du bouton (facultatif), widget: string, required: false }
+              - { name: bouton_lien, label: Lien du bouton (facultatif), widget: string, required: false, hint: 'Adresse web, ou mailto:courriel@exemple.ca pour un courriel' }
+      - name: coordonnees
+        label: Coordonnées et réseaux sociaux
+        file: src/content/reglages/site.json
+        format: json
+        i18n: false
+        fields:
+          - { name: nom, label: Nom du laboratoire, widget: string }
+          - { name: sigle, label: Sigle, widget: string }
+          - { name: courriel, label: Courriel, widget: string, required: false }
+          - { name: telephone, label: Téléphone, widget: string, required: false }
+          - name: adresses
+            label: Adresses
+            label_singular: adresse
+            widget: list
+            summary: '{{nom}}'
+            fields:
+              - { name: nom, label: Nom du lieu, widget: string }
+              - name: lignes
+                label: Lignes de l'adresse
+                label_singular: ligne
+                widget: list
+                field: { name: ligne, label: Ligne, widget: string }
+          - { name: facebook, label: Page Facebook, widget: string, required: false }
+          - { name: instagram, label: Compte Instagram, widget: string, required: false }
+          - { name: linkedin, label: Page LinkedIn, widget: string, required: false }

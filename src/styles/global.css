@@ -1,0 +1,275 @@
+/* Polices auto-hébergées (licence SIL OFL, voir public/fonts) */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url(/fonts/archivo-latin-standard-normal.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url(/fonts/archivo-latin-ext-standard-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url(/fonts/newsreader-latin-opsz-normal.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url(/fonts/newsreader-latin-ext-opsz-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url(/fonts/newsreader-latin-opsz-italic.woff2) format('woff2-variations');
+}
+
+:root {
+  /* Palette tirée du logo du LABE : le vert de l'épinette, et ses voisins de forêt */
+  --sapin: #1d3527;
+  --epinette: #446e53;
+  --epinette-claire: #5f8a6d;
+  --lichen: #e4ece3;
+  --brume: #f4f7f2;
+  --encre: #17221b;
+  --gris-mousse: #4b5a50;
+  --trait: #c9d6c8;
+  --meleze: #d9a53c;
+  --blanc: #ffffff;
+
+  --titre: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --texte: 'Newsreader', Georgia, 'Times New Roman', serif;
+
+  --pas-1: 0.25rem;
+  --pas-2: 0.5rem;
+  --pas-3: 0.75rem;
+  --pas-4: 1rem;
+  --pas-5: 1.5rem;
+  --pas-6: 2rem;
+  --pas-7: 3rem;
+  --pas-8: 4.5rem;
+  --pas-9: 7rem;
+
+  --large: 72rem;
+  --lecture: 40rem;
+  --gouttiere: clamp(1rem, 4vw, 2.5rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--blanc);
+  color: var(--encre);
+  font-family: var(--texte);
+  font-optical-sizing: auto;
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--titre);
+  color: var(--sapin);
+  line-height: 1.1;
+  margin: 0 0 var(--pas-4);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 5.5vw, 4.25rem);
+  font-weight: 650;
+  font-stretch: 118%;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 620;
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-stretch: 100%;
+  line-height: 1.25;
+}
+
+p {
+  margin: 0 0 var(--pas-4);
+  max-width: var(--lecture);
+}
+
+a {
+  color: var(--epinette);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--sapin);
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--meleze);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--lichen);
+}
+
+.cadre {
+  width: 100%;
+  max-width: calc(var(--large) + 2 * var(--gouttiere));
+  margin-inline: auto;
+  padding-inline: var(--gouttiere);
+}
+
+.visuellement-cache {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ui {
+  font-family: var(--titre);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.chapo {
+  font-size: clamp(1.25rem, 2vw, 1.45rem);
+  line-height: 1.5;
+  color: var(--gris-mousse);
+  max-width: 38rem;
+}
+
+.entete-page {
+  padding-block: var(--pas-8) var(--pas-6);
+}
+
+.section {
+  padding-block: var(--pas-8);
+}
+
+.section--lichen {
+  background: var(--brume);
+}
+
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pas-2);
+  font-family: var(--titre);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8em 1.25em;
+  border-radius: 999px;
+  background: var(--sapin);
+  color: var(--blanc);
+  text-decoration: none;
+  border: 2px solid var(--sapin);
+}
+
+.bouton:hover {
+  background: var(--epinette);
+  border-color: var(--epinette);
+  color: var(--blanc);
+}
+
+.bouton--contour {
+  background: transparent;
+  color: var(--sapin);
+}
+
+.bouton--contour:hover {
+  background: var(--lichen);
+  color: var(--sapin);
+  border-color: var(--sapin);
+}
+
+.prose > * + * {
+  margin-top: var(--pas-4);
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  max-width: var(--lecture);
+  margin-bottom: 0;
+}
+
+.prose ol,
+.prose ul {
+  padding-left: 1.3em;
+}
+
+.prose li + li {
+  margin-top: var(--pas-2);
+}
+
+.auteur-direction {
+  font-weight: 700;
+}
+
+.auteur-membre {
+  font-weight: 650;
+  color: var(--epinette);
+}
+
+.auteur-direction.auteur-membre,
+.auteur-membre .auteur-direction {
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

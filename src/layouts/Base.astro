@@ -1,0 +1,312 @@
+---
+import '../styles/global.css';
+import { getEntry } from 'astro:content';
+import { t, lien } from '../i18n/ui';
+
+interface Props {
+  lang: string;
+  titre?: string;
+  description?: string;
+  section?: 'recherche' | 'equipe' | 'publications' | 'actualites' | 'galerie' | 'contact';
+}
+
+const { lang, titre, description, section } = Astro.props;
+const site = (await getEntry('reglages', 'site'))!.data;
+const titreComplet = titre ? `${titre} | ${site.sigle}` : `${site.sigle}, ${site.nom}`;
+const desc =
+  description ??
+  "Le LABE, à l'Université de Montréal et au CRCHUM, étudie comment l'activité physique favorise la santé mentale et le bien-être.";
+
+const nav = [
+  { cle: 'recherche', href: lien(lang, 'recherche'), texte: t(lang, 'nav.recherche') },
+  { cle: 'equipe', href: lien(lang, 'equipe'), texte: t(lang, 'nav.equipe') },
+  { cle: 'publications', href: lien(lang, 'publications'), texte: t(lang, 'nav.publications') },
+  { cle: 'actualites', href: lien(lang, 'actualites'), texte: t(lang, 'nav.actualites') },
+  { cle: 'galerie', href: lien(lang, 'galerie'), texte: t(lang, 'nav.galerie') },
+  { cle: 'contact', href: lien(lang, 'nous-joindre'), texte: t(lang, 'nav.contact') },
+] as const;
+const canonique = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titreComplet}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonique} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preload" href="/fonts/archivo-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/newsreader-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <meta property="og:title" content={titreComplet} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL('/images/accueil/equipe-crchum.webp', Astro.site)} />
+    <meta name="theme-color" content="#1d3527" />
+  </head>
+  <body>
+    <a class="evitement" href="#contenu">{t(lang, 'lien.evitement')}</a>
+    <header class="entete">
+      <div class="cadre entete__rang">
+        <a class="entete__logo" href={lien(lang)}>
+          <img src={`/images/labe/labe-horizontal-${lang}.png`} alt={`${site.sigle}, ${site.nom}`} width="220" height="73" />
+        </a>
+        <button class="entete__menu ui" type="button" aria-expanded="false" aria-controls="navigation">
+          <span class="entete__burger" aria-hidden="true"></span>
+          {t(lang, 'nav.menu')}
+        </button>
+        <nav id="navigation" class="entete__nav ui" aria-label={t(lang, 'nav.principale')}>
+          <ul>
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={section === item.cle ? 'page' : undefined}>
+                    {item.texte}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenu">
+      <slot />
+    </main>
+
+    <footer class="pied">
+      <div class="cadre pied__grille">
+        <div class="pied__marque">
+          <img src={`/images/labe/labe-vertical-${lang}-blanc.png`} alt="" width="150" height="150" loading="lazy" />
+        </div>
+        <div>
+          <h2 class="pied__titre">{t(lang, 'contact.coordonnees')}</h2>
+          {
+            site.adresses.map((a) => (
+              <address class="pied__adresse">
+                <strong>{a.nom}</strong>
+                {a.lignes.map((l) => (
+                  <>
+                    <br />
+                    {l}
+                  </>
+                ))}
+              </address>
+            ))
+          }
+        </div>
+        <div>
+          <h2 class="pied__titre">{t(lang, 'nav.contact')}</h2>
+          <p class="pied__ligne">
+            {site.courriel && <a href={`mailto:${site.courriel}`}>{site.courriel}</a>}
+            {site.telephone && (
+              <>
+                <br />
+                {site.telephone}
+              </>
+            )}
+          </p>
+          {
+            (site.facebook || site.instagram || site.linkedin) && (
+              <>
+                <h2 class="pied__titre">{t(lang, 'pied.suivre')}</h2>
+                <ul class="pied__reseaux">
+                  {site.instagram && <li><a href={site.instagram}>Instagram</a></li>}
+                  {site.linkedin && <li><a href={site.linkedin}>LinkedIn</a></li>}
+                  {site.facebook && <li><a href={site.facebook}>Facebook</a></li>}
+                </ul>
+              </>
+            )
+          }
+        </div>
+      </div>
+      <div class="cadre pied__bas ui">
+        <span>© {new Date().getFullYear()} {site.sigle}, {site.nom}</span>
+      </div>
+    </footer>
+
+    <script>
+      const bouton = document.querySelector<HTMLButtonElement>('.entete__menu');
+      const nav = document.getElementById('navigation');
+      bouton?.addEventListener('click', () => {
+        const ouvert = bouton.getAttribute('aria-expanded') === 'true';
+        bouton.setAttribute('aria-expanded', String(!ouvert));
+        nav?.classList.toggle('est-ouvert', !ouvert);
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .evitement {
+    position: absolute;
+    left: var(--pas-4);
+    top: -4rem;
+    z-index: 10;
+    background: var(--sapin);
+    color: var(--blanc);
+    padding: var(--pas-2) var(--pas-4);
+    font-family: var(--titre);
+  }
+  .evitement:focus {
+    top: var(--pas-4);
+  }
+
+  .entete {
+    border-bottom: 1px solid var(--trait);
+    background: var(--blanc);
+  }
+  .entete__rang {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pas-5);
+    min-height: 5.5rem;
+  }
+  .entete__logo img {
+    width: clamp(150px, 18vw, 210px);
+    height: auto;
+  }
+  .entete__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-1) var(--pas-5);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .entete__nav a {
+    color: var(--encre);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    padding-block: var(--pas-2);
+    border-bottom: 2px solid transparent;
+  }
+  .entete__nav a:hover {
+    color: var(--epinette);
+    border-bottom-color: var(--trait);
+  }
+  .entete__nav a[aria-current='page'] {
+    color: var(--sapin);
+    font-weight: 650;
+    border-bottom-color: var(--epinette);
+  }
+  .entete__menu {
+    display: none;
+    align-items: center;
+    gap: var(--pas-2);
+    background: none;
+    border: 1px solid var(--trait);
+    border-radius: 999px;
+    padding: 0.5rem 0.9rem;
+    font-size: 1rem;
+    color: var(--sapin);
+    cursor: pointer;
+  }
+  .entete__burger,
+  .entete__burger::before {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+    position: relative;
+  }
+  .entete__burger::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+  }
+  .entete__burger {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 54rem) {
+    .entete__rang {
+      flex-wrap: wrap;
+    }
+    .entete__menu {
+      display: inline-flex;
+    }
+    .entete__nav {
+      display: none;
+      width: 100%;
+      padding-bottom: var(--pas-4);
+    }
+    .entete__nav.est-ouvert {
+      display: block;
+    }
+    .entete__nav ul {
+      flex-direction: column;
+      gap: 0;
+    }
+    .entete__nav li a {
+      display: block;
+      padding: var(--pas-3) 0;
+      border-bottom: 1px solid var(--trait);
+      font-size: 1.1rem;
+    }
+  }
+
+  .pied {
+    background: var(--sapin);
+    color: #dfe8de;
+    margin-top: var(--pas-9);
+    padding-top: var(--pas-8);
+  }
+  .pied a {
+    color: var(--blanc);
+  }
+  .pied__grille {
+    display: grid;
+    grid-template-columns: minmax(8rem, 12rem) 1fr 1fr;
+    gap: var(--pas-7);
+    align-items: start;
+  }
+  .pied__marque img {
+    width: 9rem;
+  }
+  .pied__titre {
+    font-size: 1rem;
+    font-weight: 600;
+    font-stretch: 105%;
+    color: var(--blanc);
+    margin: 0 0 var(--pas-3);
+  }
+  .pied__titre:not(:first-child) {
+    margin-top: var(--pas-5);
+  }
+  .pied__adresse {
+    font-style: normal;
+    margin-bottom: var(--pas-4);
+    line-height: 1.5;
+  }
+  .pied__adresse strong {
+    color: var(--blanc);
+    font-weight: 600;
+  }
+  .pied__ligne {
+    line-height: 1.6;
+  }
+  .pied__reseaux {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: var(--pas-4);
+  }
+  .pied__bas {
+    margin-top: var(--pas-7);
+    padding-block: var(--pas-5);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 0.875rem;
+  }
+  @media (max-width: 48rem) {
+    .pied__grille {
+      grid-template-columns: 1fr;
+      gap: var(--pas-6);
+    }
+  }
+</style>
