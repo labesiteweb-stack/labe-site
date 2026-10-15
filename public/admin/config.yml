@@ -7,8 +7,8 @@ backend:
   # À REMPLIR à la création du dépôt : compte GitHub dédié / nom du dépôt
   repo: labesiteweb-stack/labe-site
   branch: main
-  # À REMPLIR après le déploiement du service d'authentification sur Cloudflare (voir docs/mise-en-place-comptes.md)
-  # base_url: https://sveltia-cms-auth.SOUS-DOMAINE.workers.dev
+  # Service de connexion (Cloudflare Worker sveltia-cms-auth)
+  base_url: https://sveltia-cms-auth.labesiteweb-5b0.workers.dev
   auth_methods: [oauth, token]
   commit_messages:
     create: 'Ajout : {{collection}} « {{slug}} »'
