@@ -1,5 +1,5 @@
 ---
-titre: Le LABE au congrès ISPAH à Mérida TEST
+titre: Le LABE au congrès ISPAH à Mérida
 date: 2026-10-05
 categorie: nouvelle
 brouillon: false
