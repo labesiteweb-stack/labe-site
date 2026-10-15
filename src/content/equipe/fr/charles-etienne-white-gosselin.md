@@ -13,4 +13,5 @@ nom_publication:
 - White-Gosselin C
 - White-Gosselin CÉ
 ordre: 20
+a_valider: true
 ---

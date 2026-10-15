@@ -11,4 +11,5 @@ distinctions:
 nom_publication:
 - Plante A
 ordre: 44
+a_valider: true
 ---

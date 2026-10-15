@@ -1,8 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getEntry, render } from 'astro:content';
-import { LANGUES, t, lien, dateLongue } from '../../i18n/ui';
-import { parLangue, publiees, slug, enCours, periode } from '../../lib/contenu';
+import { LANGUES, t, lien } from '../../i18n/ui';
+import { parLangue, publiees, projetsPhares, emphase, sansEmphase } from '../../lib/contenu';
+import CarteProjet from '../../components/CarteProjet.astro';
+import CarteNouvelle from '../../components/CarteNouvelle.astro';
+import Portrait from '../../components/Portrait.astro';
+import AValider from '../../components/AValider.astro';
+import Icone from '../../components/Icone.astro';
 
 export function getStaticPaths() {
   return LANGUES.map((lang) => ({ params: { lang } }));
@@ -11,75 +16,65 @@ export function getStaticPaths() {
 const { lang } = Astro.params;
 const page = (await getEntry('pages', `${lang}/accueil`))!;
 const { Content } = await render(page);
+const d = page.data;
 
-const projets = (await parLangue('projets', lang))
-  .filter((p) => p.data.role !== 'co-chercheuse' && enCours(p.data.fin) && p.data.logo)
-  .sort((a, b) => b.data.debut - a.data.debut);
-
-const nouvelles = (await parLangue('nouvelles', lang))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0, 3);
+const phares = (await projetsPhares(lang)).slice(0, 3);
+const totalProjets = (await parLangue('projets', lang)).length;
+const nouvelles = (await parLangue('nouvelles', lang)).sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).slice(0, 3);
+const medias = await publiees('medias');
+const direction = (await parLangue('equipe', lang)).find((m) => m.data.role === 'direction');
+const blocLabo = d.sections[0];
 
 const partenaires = (await publiees('partenaires')).sort((a, b) => a.data.ordre - b.data.ordre);
-const groupes = (['affiliation', 'financement', 'partenaire'] as const).map((cat) => ({
-  cat,
-  items: partenaires.filter((p) => p.data.categorie === cat),
-}));
+const groupes = (['affiliation', 'financement', 'partenaire'] as const)
+  .map((cat) => ({ cat, items: partenaires.filter((p) => p.data.categorie === cat) }))
+  .filter((g) => g.items.length);
+
+const externe = (href: string) => /^https?:/.test(href);
 ---
 
-<Base lang={lang}>
-  <section class="accueil-tete cadre">
-    <h1>{page.data.titre}</h1>
-    <div class="accueil-tete__texte">
-      {page.data.accroche && <p class="chapo">{page.data.accroche}</p>}
-      <div class="accueil-tete__intro"><Content /></div>
-      <p class="accueil-tete__actions">
-        <a class="bouton" href={lien(lang, 'recherche')}>{t(lang, 'accueil.voir_projets')}</a>
-        <a class="bouton bouton--contour" href={lien(lang, 'nous-joindre')}>{t(lang, 'accueil.rejoindre')}</a>
-      </p>
+<Base lang={lang} description={d.accroche}>
+  <section class="cadre tete">
+    <div class="tete__titre">
+      {d.etiquette && <p class="etiquette">{d.etiquette}</p>}
+      <h1 set:html={emphase(d.titre)} />
+      <AValider si={d.a_valider} lang={lang} note="Promesse proposée à la place du nom du labo" />
+    </div>
+    <div class="tete__texte">
+      {d.accroche && <p class="chapo">{d.accroche}</p>}
+      <div class="tete__actions">
+        <a class="bouton" href={lien(lang, 'projets')}>{t(lang, 'accueil.voir_projets')}</a>
+        <a class="bouton bouton--contour" href={lien(lang, 'equipe/#etudier')}>{t(lang, 'nav.equipe.etudier')}</a>
+      </div>
     </div>
   </section>
 
-  <figure class="crete">
+  <figure class="horizon">
     <img
-      src="/images/accueil/equipe-crchum.webp"
-      alt="Les membres du LABE devant le Centre de recherche du CHUM"
-      width="2000"
-      height="1333"
+      src="/images/accueil/hero-jardin.webp"
+      alt="L'équipe du LABE réunie dans le jardin du Centre de recherche du CHUM"
+      width="2400"
+      height="1312"
       fetchpriority="high"
     />
   </figure>
 
-  <section class="section cadre" aria-labelledby="axes">
-    <h2 id="axes">{t(lang, 'accueil.axes')}</h2>
-    <ul class="axes">
-      {
-        page.data.axes.map((axe) => (
-          <li>
-            <h3>{axe.titre}</h3>
-            <p>{axe.texte}</p>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
-
   {
-    projets.length > 0 && (
-      <section class="section section--lichen" aria-labelledby="phares">
+    d.portes.length > 0 && (
+      <section class="section section--surface" aria-labelledby="commencer">
         <div class="cadre">
-          <h2 id="phares">{t(lang, 'accueil.projets')}</h2>
-          <ul class="phares">
-            {projets.map((p) => (
-              <li>
-                <a class="phare" href={lien(lang, `recherche/${slug(p.id)}`)}>
-                  <span class="phare__logo">
-                    <img src={p.data.logo} alt="" loading="lazy" />
-                  </span>
-                  <span class="phare__titre">{p.data.titre}</span>
-                  <span class="phare__meta ui">
-                    {periode(p.data.debut, p.data.fin)}, {p.data.financement}
-                  </span>
+          <h2 id="commencer">{t(lang, 'accueil.commencer')}</h2>
+          <ul class="portes">
+            {d.portes.map((p) => (
+              <li class="porte">
+                <p class="etiquette">{p.etiquette}</p>
+                <h3>{p.titre}</h3>
+                <p class="porte__texte">{p.texte}</p>
+                <a class="lien-fleche" href={p.bouton_lien} data-externe={externe(p.bouton_lien) ? '' : undefined}>
+                  {p.bouton_texte}
+                  {p.bouton_lien.includes('/medias') && medias.length > 0 && <span class="porte__compte">({medias.length})</span>}
+                  {externe(p.bouton_lien) && <span class="visuellement-cache">{t(lang, 'lien.externe')}</span>}
+                  <Icone nom={externe(p.bouton_lien) ? 'externe' : 'fleche'} />
                 </a>
               </li>
             ))}
@@ -89,194 +84,291 @@ const groupes = (['affiliation', 'financement', 'partenaire'] as const).map((cat
     )
   }
 
-  <section class="section cadre deux-colonnes" aria-labelledby="nouvelles">
-    <div>
-      <h2 id="nouvelles">{t(lang, 'accueil.nouvelles')}</h2>
-      <p><a class="ui" href={lien(lang, 'actualites')}>{t(lang, 'accueil.toutes_nouvelles')}</a></p>
+  <section class="section cadre" aria-labelledby="axes">
+    <div class="axes__tete">
+      <h2 id="axes">{t(lang, 'accueil.axes')}</h2>
+      <p class="chapo">{t(lang, 'accueil.axes.intro')}</p>
     </div>
-    <ol class="fil">
+    <ol class="axes">
       {
-        nouvelles.map((n) => (
-          <li>
-            <time class="ui" datetime={n.data.date.toISOString().slice(0, 10)}>
-              {n.data.date_texte ?? dateLongue(n.data.date, lang)}
-            </time>
-            <h3>{n.data.titre}</h3>
+        d.axes.map((axe, i) => (
+          <li class="axe">
+            <span class="axe__numero" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3>{axe.titre}</h3>
+            <p>{axe.texte}</p>
           </li>
         ))
       }
     </ol>
   </section>
 
-  <section class="section cadre" aria-labelledby="partenaires">
-    <h2 id="partenaires">{t(lang, 'accueil.partenaires')}</h2>
-    {
-      groupes.map(({ cat, items }) => (
-        <div class="logos">
-          <h3 class="logos__titre">{t(lang, `partenaires.${cat}`)}</h3>
-          <ul>
-            {items.map((p) => (
-              <li>
-                {p.data.lien ? (
-                  <a href={p.data.lien}>
-                    <img src={p.data.logo} alt={p.data.nom} loading="lazy" />
-                  </a>
-                ) : (
-                  <img src={p.data.logo} alt={p.data.nom} loading="lazy" />
-                )}
-              </li>
-            ))}
-          </ul>
+  {
+    phares.length > 0 && (
+      <section class="cadre phares" aria-labelledby="phares">
+        <div class="tete-section">
+          <h2 id="phares">{t(lang, 'accueil.projets')}</h2>
+          <a class="lien-fleche" href={lien(lang, 'projets')}>
+            {t(lang, 'nav.projets.tous')} ({totalProjets})
+            <Icone nom="fleche" />
+          </a>
         </div>
-      ))
-    }
+        <div class="grille-3">
+          {phares.map((p) => (
+            <CarteProjet lang={lang} p={p} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--surface labo" aria-labelledby="labo">
+    <div class="cadre labo__grille">
+      <div class="labo__image">
+        {direction && <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} />}
+        {direction && <AValider si={direction.data.a_valider} lang={lang} note="Portrait présumé d'Isabelle Doré" />}
+      </div>
+      <div class="labo__texte">
+        <p class="etiquette">{t(lang, 'labo.titre')}</p>
+        <h2 id="labo">{blocLabo?.titre ?? t(lang, 'labo.titre')}</h2>
+        <div class="labo__intro"><Content /></div>
+        {blocLabo && <p class="labo__suite">{blocLabo.texte}</p>}
+        <div class="labo__liens">
+          <a class="lien-fleche" href={lien(lang, 'le-labo')}>
+            {t(lang, 'accueil.labo.lien')}
+            <Icone nom="fleche" />
+          </a>
+          <a class="lien-fleche" href={lien(lang, 'equipe')}>
+            {t(lang, 'accueil.equipe.lien')}
+            <Icone nom="fleche" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cadre" aria-labelledby="nouvelles">
+    <div class="tete-section">
+      <h2 id="nouvelles">{t(lang, 'accueil.nouvelles')}</h2>
+      <a class="lien-fleche" href={lien(lang, 'nouvelles')}>
+        {t(lang, 'accueil.toutes_nouvelles')}
+        <Icone nom="fleche" />
+      </a>
+    </div>
+    <div class="grille-3">
+      {nouvelles.map((n) => <CarteNouvelle lang={lang} n={n} />)}
+    </div>
+  </section>
+
+  <section class="cadre partenaires" aria-labelledby="partenaires">
+    <h2 id="partenaires">{t(lang, 'accueil.partenaires')}</h2>
+    <dl class="logos">
+      {
+        groupes.map(({ cat, items }) => (
+          <div class="logos__groupe">
+            <dt class="etiquette">{t(lang, `partenaires.${cat}`)}</dt>
+            <dd>
+              <ul>
+                {items.map((p) => (
+                  <li>
+                    {p.data.lien ? (
+                      <a href={p.data.lien}>
+                        <img src={p.data.logo} alt={p.data.nom} loading="lazy" />
+                      </a>
+                    ) : (
+                      <img src={p.data.logo} alt={p.data.nom} loading="lazy" />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
   </section>
 </Base>
 
 <style>
-  .accueil-tete {
+  .tete {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: var(--pas-6) var(--pas-8);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-5);
     align-items: end;
-    padding-top: var(--pas-8);
-    padding-bottom: var(--pas-6);
+    padding-block: clamp(2.5rem, 7vw, 5.5rem) clamp(2rem, 4vw, 3.5rem);
   }
-  .accueil-tete h1 {
+  .tete__titre {
+    grid-column: span 7;
+  }
+  .tete__titre .etiquette {
+    margin-bottom: var(--pas-5);
+  }
+  .tete h1 {
     margin: 0;
-    font-size: clamp(2.5rem, 6.2vw, 5rem);
-    font-stretch: 122%;
-    line-height: 0.98;
+    font-size: clamp(2.6rem, 6.2vw, 4.9rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
   }
-  .accueil-tete__texte .chapo {
-    color: var(--encre);
+  .tete h1 :global(em) {
+    font-weight: 400;
   }
-  .accueil-tete__intro :global(p) {
-    color: var(--gris-mousse);
-    font-size: 1.05rem;
+  .tete__texte {
+    grid-column: 9 / span 4;
   }
-  .accueil-tete__actions {
+  .tete__texte .chapo {
+    margin-bottom: var(--pas-5);
+  }
+  .tete__actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--pas-3);
-    margin: var(--pas-5) 0 0;
   }
 
-  /* La photo d'équipe découpée selon la crête du logo : le pic du A et le sapin. */
-  .crete {
+  /* La crête du logo découpe le haut de la photo d'équipe. */
+  .horizon {
     margin: 0;
-    position: relative;
   }
-  .crete img {
+  .horizon img {
     width: 100%;
-    height: clamp(18rem, 52vw, 40rem);
+    height: clamp(20rem, 46vw, 41rem);
     object-fit: cover;
-    object-position: 50% 62%;
-    clip-path: polygon(
-      0 34%,
-      14% 20%,
-      24% 28%,
-      41% 2%,
-      55% 24%,
-      63% 16%,
-      70% 22%,
-      86% 8%,
-      100% 26%,
-      100% 100%,
-      0 100%
-    );
+    object-position: 50% 12%;
+    clip-path: polygon(0 24%, 8% 13%, 15% 18%, 25% 4%, 32% 9%, 40% 0, 47% 6%, 55% 3%, 63% 8%, 71% 4%, 80% 13%, 89% 8%, 100% 19%, 100% 100%, 0 100%);
   }
 
-  .axes {
+  .portes {
     list-style: none;
     margin: var(--pas-6) 0 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--pas-6) var(--pas-8);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-5);
   }
-  .axes li {
-    border-top: 3px solid var(--epinette);
-    padding-top: var(--pas-4);
+  .porte {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pas-3);
+    padding: var(--pas-6) var(--pas-6) var(--pas-5);
+    border-radius: var(--rayon);
+    background: var(--c-fond);
   }
-  .axes p {
-    color: var(--gris-mousse);
+  .porte .etiquette,
+  .porte h3 {
+    margin: 0;
+  }
+  .porte h3 {
+    font-size: 1.45rem;
+  }
+  .porte__texte {
+    margin: 0;
+    flex-grow: 1;
+    font-size: 1.0625rem;
+    color: var(--c-texte-2);
+  }
+  .porte__compte {
+    font-weight: 400;
+  }
+
+  .axes__tete {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    margin-bottom: var(--pas-7);
+  }
+  .axes__tete h2 {
+    grid-column: span 5;
+    margin: 0;
+  }
+  .axes__tete .chapo {
+    grid-column: 7 / span 6;
+    margin: 0.4rem 0 0;
+  }
+  .axes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--pas-6);
+  }
+  .axe {
+    border-top: 1px solid var(--c-trait);
+    padding-top: var(--pas-5);
+  }
+  .axe__numero {
+    display: block;
+    margin-bottom: var(--pas-4);
+    font-family: var(--f-titre);
+    font-size: 2.75rem;
+    line-height: 1;
+    color: var(--c-identite);
+  }
+  .axe h3 {
+    font-size: 1.2rem;
+  }
+  .axe p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--c-texte-2);
   }
 
   .phares {
-    list-style: none;
-    margin: var(--pas-6) 0 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-    gap: var(--pas-6);
+    padding-bottom: clamp(3.5rem, 8vw, 6rem);
   }
-  .phare {
+  .grille-3 {
     display: grid;
-    gap: var(--pas-3);
-    text-decoration: none;
-    color: var(--encre);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-6) var(--pas-5);
   }
-  .phare__logo {
-    display: flex;
+
+  .labo__grille {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-6);
     align-items: center;
-    height: 4.5rem;
   }
-  .phare__logo img {
-    max-height: 100%;
-    max-width: 14rem;
-    width: auto;
+  .labo__image {
+    grid-column: span 5;
   }
-  .phare__titre {
-    font-family: var(--titre);
-    font-weight: 600;
-    font-size: 1.15rem;
-    line-height: 1.3;
-    color: var(--sapin);
+  .labo__texte {
+    grid-column: 7 / span 6;
   }
-  .phare:hover .phare__titre {
-    text-decoration: underline;
-    text-decoration-color: var(--epinette);
-    text-underline-offset: 0.2em;
+  .labo__intro :global(p) {
+    margin: 0 0 var(--pas-4);
+    font-size: 1.125rem;
   }
-  .phare__meta {
-    font-size: 0.9rem;
-    color: var(--gris-mousse);
+  .labo__suite {
+    color: var(--c-texte-2);
+  }
+  .labo__liens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-2) var(--pas-6);
   }
 
-  .deux-colonnes {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    gap: var(--pas-6) var(--pas-8);
+  .partenaires h2 {
+    font-size: 2rem;
+    margin-bottom: var(--pas-6);
   }
-  .fil {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .fil li {
-    padding-block: var(--pas-4);
-    border-top: 1px solid var(--trait);
-  }
-  .fil li:last-child {
-    border-bottom: 1px solid var(--trait);
-  }
-  .fil time {
-    font-size: 0.9rem;
-    color: var(--gris-mousse);
-  }
-  .fil h3 {
-    margin: var(--pas-1) 0 0;
-    font-weight: 550;
-  }
-
   .logos {
-    margin-top: var(--pas-6);
+    margin: 0;
   }
-  .logos__titre {
-    font-size: 1rem;
-    color: var(--gris-mousse);
-    font-weight: 550;
+  .logos__groupe {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: var(--pas-4) var(--pas-5);
+    align-items: center;
+    padding-block: var(--pas-5);
+    border-top: 1px solid var(--c-trait);
+  }
+  .logos__groupe dt {
+    margin: 0;
+  }
+  .logos__groupe dd {
+    margin: 0;
   }
   .logos ul {
     list-style: none;
@@ -285,25 +377,49 @@ const groupes = (['affiliation', 'financement', 'partenaire'] as const).map((cat
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--pas-6) var(--pas-7);
+    gap: var(--pas-5) var(--pas-7);
   }
   .logos img {
-    height: 3.25rem;
+    height: 2.75rem;
     width: auto;
-    max-width: 13rem;
+    max-width: 12rem;
     object-fit: contain;
   }
 
-  @media (max-width: 54rem) {
-    .accueil-tete,
-    .deux-colonnes {
+  @media (max-width: 64em) {
+    .axes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 54em) {
+    .tete__titre,
+    .tete__texte,
+    .axes__tete h2,
+    .axes__tete .chapo,
+    .labo__image,
+    .labo__texte {
+      grid-column: 1 / -1;
+    }
+    .portes,
+    .grille-3 {
       grid-template-columns: 1fr;
     }
+    .horizon img {
+      clip-path: polygon(0 14%, 12% 7%, 22% 11%, 38% 0, 52% 6%, 66% 2%, 80% 9%, 100% 4%, 100% 100%, 0 100%);
+    }
+    .logos__groupe {
+      grid-template-columns: 1fr;
+    }
+    .labo__image {
+      max-width: 26rem;
+    }
+  }
+  @media (max-width: 40em) {
     .axes {
       grid-template-columns: 1fr;
     }
-    .crete img {
-      clip-path: polygon(0 18%, 22% 8%, 41% 0, 60% 12%, 82% 4%, 100% 14%, 100% 100%, 0 100%);
+    .tete__actions .bouton {
+      width: 100%;
     }
   }
 </style>

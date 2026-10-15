@@ -1,3 +1,9 @@
+/*
+  Système visuel « Plein air » du LABE.
+  Les couleurs passent toutes par des rôles (--c-…). La palette principale est définie dans :root;
+  les palettes alternatives (aperçu seulement) redéfinissent les mêmes rôles sous [data-palette].
+*/
+
 /* Polices auto-hébergées (licence SIL OFL, voir public/fonts) */
 @font-face {
   font-family: 'Archivo';
@@ -18,44 +24,89 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Newsreader';
+  font-family: 'Spectral';
   font-style: normal;
   font-display: swap;
-  font-weight: 200 800;
-  src: url(/fonts/newsreader-latin-opsz-normal.woff2) format('woff2-variations');
+  font-weight: 400;
+  src: url(/fonts/spectral-latin-400-normal.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Newsreader';
+  font-family: 'Spectral';
   font-style: normal;
   font-display: swap;
-  font-weight: 200 800;
-  src: url(/fonts/newsreader-latin-ext-opsz-normal.woff2) format('woff2-variations');
+  font-weight: 400;
+  src: url(/fonts/spectral-latin-ext-400-normal.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Newsreader';
+  font-family: 'Spectral';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(/fonts/spectral-latin-500-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Spectral';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(/fonts/spectral-latin-ext-500-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Spectral';
   font-style: italic;
   font-display: swap;
-  font-weight: 200 800;
-  src: url(/fonts/newsreader-latin-opsz-italic.woff2) format('woff2-variations');
+  font-weight: 400;
+  src: url(/fonts/spectral-latin-400-italic.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Spectral';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(/fonts/spectral-latin-ext-400-italic.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+/* ---------------------------------------------------------------- Palette principale « Plein air »
+   La forêt dit qui on est, le lac dit où cliquer, le soleil apporte la lumière.
+   Contrastes vérifiés (WCAG) : encre sur blanc 16,8:1, lac sur blanc 7,1:1, lac sur lichen 5,9:1,
+   épinette sur blanc 6,0:1, soleil sur forêt profonde 7,6:1. Le soleil ne porte jamais de texte sur fond clair. */
 :root {
-  /* Palette tirée du logo du LABE : le vert de l'épinette, et ses voisins de forêt */
-  --sapin: #1d3527;
-  --epinette: #446e53;
-  --epinette-claire: #5f8a6d;
-  --lichen: #e4ece3;
-  --brume: #f4f7f2;
-  --encre: #17221b;
-  --gris-mousse: #4b5a50;
-  --trait: #c9d6c8;
-  --meleze: #d9a53c;
-  --blanc: #ffffff;
+  --c-texte: #14201a; /* Encre */
+  --c-texte-2: #4d5a52; /* Gris mousse */
+  --c-titre: #1c3a2b; /* Forêt */
+  --c-identite: #4a6a52; /* Épinette, le vert du logo */
+  --c-action: #0e6170; /* Lac */
+  --c-action-survol: #0a4c58;
+  --c-sur-action: #ffffff;
+  --c-focus: #0e6170;
+  --c-fond: #ffffff;
+  --c-surface: #f2f6f1; /* Brume */
+  --c-surface-2: #e2ece2; /* Lichen */
+  --c-lumiere: #f2b33d; /* Soleil : décor et aplats, jamais de texte sur fond clair */
+  --c-sur-lumiere: #14201a;
+  --c-aube: #fcf1d8; /* Fond des distinctions */
+  --c-trait: #d5ded6;
+  --c-bordure: #4d5a52; /* Bordures de champs et de boutons secondaires */
+  --c-filet: #f2b33d; /* Filet sous l'en-tête */
+  --c-pied-fond: #17301f;
+  --c-pied-texte: #d7e3d8;
+  --c-pied-titre: #ffffff;
+  --c-pied-lien: #f2b33d;
+  --c-pied-trait: rgba(255, 255, 255, 0.16);
+  --c-pied-focus: #f2b33d;
+  --c-filigrane: #e2ece2;
 
-  --titre: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
-  --texte: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --f-titre: 'Spectral', Georgia, 'Times New Roman', serif;
+  --f-texte: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+
+  --rayon: 12px; /* Photos, cartes, encadrés */
+  --rayon-petit: 6px; /* Boutons, champs, étiquettes */
 
   --pas-1: 0.25rem;
   --pas-2: 0.5rem;
@@ -65,13 +116,73 @@
   --pas-6: 2rem;
   --pas-7: 3rem;
   --pas-8: 4.5rem;
-  --pas-9: 7rem;
+  --pas-9: 6.5rem;
 
-  --large: 72rem;
-  --lecture: 40rem;
-  --gouttiere: clamp(1rem, 4vw, 2.5rem);
+  --large: 75rem;
+  --lecture: 42rem;
+  --gouttiere: clamp(1rem, 4vw, 1.5rem);
 }
 
+/* ---------------------------------------------------------------- Palettes alternatives (aperçu seulement) */
+/* A. Charte présentée à Isabelle le 6 oct. 2026 (Meryem) : Vert LABE, Vert forêt, Ardoise, Papier */
+:root[data-palette='a'] {
+  --c-texte: #16191a;
+  --c-texte-2: #4a524c;
+  --c-titre: #22332a;
+  --c-identite: #4a6a52;
+  --c-action: #4e6e86;
+  --c-action-survol: #34495a;
+  --c-focus: #4e6e86;
+  --c-surface: #f2f3ef;
+  --c-surface-2: #e7e9e3;
+  --c-lumiere: #4a6a52;
+  --c-sur-lumiere: #ffffff;
+  --c-aube: #f2f3ef;
+  --c-trait: #d2d6cd;
+  --c-filet: #4a6a52;
+  --c-pied-fond: #22332a;
+  --c-pied-texte: #dde5dc;
+  --c-pied-lien: #e8c66a;
+  --c-pied-focus: #e8c66a;
+  --c-filigrane: #e7e9e3;
+}
+/* B. Couleurs du modèle UdeM demandées par Isabelle : bleu UdeM, turquoise pâle, pied de page clair */
+:root[data-palette='b'],
+:root[data-palette='c'] {
+  --c-texte: #16191a;
+  --c-texte-2: #4a524c;
+  --c-titre: #22332a;
+  --c-identite: #4a6a52;
+  --c-action: #0046b6;
+  --c-action-survol: #00358a;
+  --c-focus: #0046b6;
+  --c-surface: #e8f6f4;
+  --c-surface-2: #d3eeea;
+  --c-lumiere: #2bb3aa;
+  --c-sur-lumiere: #16191a;
+  --c-aube: #dff3f1;
+  --c-trait: #cfe3df;
+  --c-filet: #2bb3aa;
+  --c-filigrane: #d3eeea;
+}
+:root[data-palette='b'] {
+  --c-pied-fond: #c9edea;
+  --c-pied-texte: #16191a;
+  --c-pied-titre: #16191a;
+  --c-pied-lien: #0046b6;
+  --c-pied-trait: rgba(22, 25, 26, 0.18);
+  --c-pied-focus: #0046b6;
+}
+/* C. Variante UdeM marine : comme B, avec un pied de page bleu marine */
+:root[data-palette='c'] {
+  --c-pied-fond: #0a1440;
+  --c-pied-texte: #d6dbef;
+  --c-pied-titre: #ffffff;
+  --c-pied-lien: #8fd9d2;
+  --c-pied-focus: #8fd9d2;
+}
+
+/* ---------------------------------------------------------------- Base */
 *,
 *::before,
 *::after {
@@ -81,17 +192,17 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scroll-padding-top: var(--pas-6);
 }
 
 body {
   margin: 0;
-  background: var(--blanc);
-  color: var(--encre);
-  font-family: var(--texte);
-  font-optical-sizing: auto;
-  font-size: 1.1875rem;
+  background: var(--c-fond);
+  color: var(--c-texte);
+  font-family: var(--f-texte);
+  font-size: 1.125rem;
   line-height: 1.6;
-  font-variant-numeric: oldstyle-nums proportional-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
 img {
@@ -101,68 +212,99 @@ img {
 }
 
 h1,
-h2,
-h3,
-h4 {
-  font-family: var(--titre);
-  color: var(--sapin);
-  line-height: 1.1;
+h2 {
+  font-family: var(--f-titre);
+  font-weight: 500;
+  color: var(--c-titre);
   margin: 0 0 var(--pas-4);
   text-wrap: balance;
 }
 
 h1 {
-  font-size: clamp(2.25rem, 5.5vw, 4.25rem);
-  font-weight: 650;
-  font-stretch: 118%;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.375rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
 }
 
 h2 {
-  font-size: clamp(1.6rem, 3vw, 2.25rem);
-  font-weight: 620;
-  font-stretch: 112%;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.12;
   letter-spacing: -0.01em;
 }
 
-h3 {
-  font-size: 1.25rem;
+h3,
+h4 {
+  font-family: var(--f-texte);
   font-weight: 600;
-  font-stretch: 100%;
-  line-height: 1.25;
+  color: var(--c-titre);
+  line-height: 1.3;
+  margin: 0 0 var(--pas-3);
+}
+
+h3 {
+  font-size: 1.3rem;
 }
 
 p {
   margin: 0 0 var(--pas-4);
-  max-width: var(--lecture);
 }
 
 a {
-  color: var(--epinette);
+  color: var(--c-action);
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
+  text-underline-offset: 0.2em;
 }
 
 a:hover {
-  color: var(--sapin);
+  color: var(--c-action-survol);
   text-decoration-thickness: 2px;
 }
 
 :focus-visible {
-  outline: 3px solid var(--meleze);
-  outline-offset: 2px;
+  outline: 3px solid var(--c-focus);
+  outline-offset: 3px;
   border-radius: 2px;
 }
 
 ::selection {
-  background: var(--lichen);
+  background: var(--c-surface-2);
 }
 
+/* ---------------------------------------------------------------- Mise en page */
 .cadre {
   width: 100%;
   max-width: calc(var(--large) + 2 * var(--gouttiere));
   margin-inline: auto;
   padding-inline: var(--gouttiere);
+}
+
+.section {
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+
+.section--surface {
+  background: var(--c-surface);
+}
+
+.entete-page {
+  padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.entete-page h1 {
+  margin-bottom: var(--pas-4);
+}
+
+.tete-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pas-3) var(--pas-5);
+  margin-bottom: var(--pas-6);
+}
+
+.tete-section h2 {
+  margin: 0;
 }
 
 .visuellement-cache {
@@ -174,60 +316,56 @@ a:hover {
   white-space: nowrap;
 }
 
-.ui {
-  font-family: var(--titre);
-  font-variant-numeric: lining-nums tabular-nums;
+/* ---------------------------------------------------------------- Texte */
+.etiquette {
+  display: block;
+  margin: 0 0 var(--pas-3);
+  font-family: var(--f-texte);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-stretch: 115%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--c-identite);
 }
 
 .chapo {
-  font-size: clamp(1.25rem, 2vw, 1.45rem);
-  line-height: 1.5;
-  color: var(--gris-mousse);
-  max-width: 38rem;
+  font-size: clamp(1.125rem, 1.6vw, 1.25rem);
+  line-height: 1.6;
+  color: var(--c-texte-2);
+  max-width: 40rem;
 }
 
-.entete-page {
-  padding-block: var(--pas-8) var(--pas-6);
+.meta {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--c-texte-2);
 }
 
-.section {
-  padding-block: var(--pas-8);
+.fil-ariane {
+  margin: 0 0 var(--pas-5);
+  font-size: 0.9375rem;
+  color: var(--c-texte-2);
 }
 
-.section--lichen {
-  background: var(--brume);
-}
-
-.bouton {
-  display: inline-flex;
-  align-items: center;
+.fil-ariane ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--pas-2);
-  font-family: var(--titre);
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 0.8em 1.25em;
-  border-radius: 999px;
-  background: var(--sapin);
-  color: var(--blanc);
-  text-decoration: none;
-  border: 2px solid var(--sapin);
 }
 
-.bouton:hover {
-  background: var(--epinette);
-  border-color: var(--epinette);
-  color: var(--blanc);
+.fil-ariane li + li::before {
+  content: '/';
+  margin-right: var(--pas-2);
+  color: var(--c-texte-2);
 }
 
-.bouton--contour {
-  background: transparent;
-  color: var(--sapin);
-}
-
-.bouton--contour:hover {
-  background: var(--lichen);
-  color: var(--sapin);
-  border-color: var(--sapin);
+.prose {
+  max-width: var(--lecture);
 }
 
 .prose > * + * {
@@ -237,31 +375,200 @@ a:hover {
 .prose p,
 .prose ul,
 .prose ol {
-  max-width: var(--lecture);
   margin-bottom: 0;
 }
 
 .prose ol,
 .prose ul {
-  padding-left: 1.3em;
+  padding-left: 1.4em;
 }
 
 .prose li + li {
   margin-top: var(--pas-2);
 }
 
+.prose h2 {
+  font-size: 1.875rem;
+  margin-top: var(--pas-7);
+}
+
+/* ---------------------------------------------------------------- Actions */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pas-2);
+  min-height: 3rem;
+  padding: 0 1.4rem;
+  border: 2px solid var(--c-action);
+  border-radius: var(--rayon-petit);
+  background: var(--c-action);
+  color: var(--c-sur-action);
+  font-family: var(--f-texte);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bouton:hover {
+  background: var(--c-action-survol);
+  border-color: var(--c-action-survol);
+  color: var(--c-sur-action);
+}
+
+.bouton--contour {
+  background: transparent;
+  color: var(--c-action);
+}
+
+.bouton--contour:hover {
+  background: var(--c-surface);
+  color: var(--c-action-survol);
+}
+
+.lien-fleche {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pas-2);
+  min-height: 2.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.lien-fleche svg {
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+}
+
+.lien-fleche:hover svg {
+  transform: translateX(3px);
+}
+
+.lien-fleche[data-externe]:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* Boutons de filtre */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pas-2);
+}
+
+.filtre {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1.5px solid var(--c-bordure);
+  border-radius: var(--rayon-petit);
+  background: var(--c-fond);
+  color: var(--c-texte);
+  font-family: var(--f-texte);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.filtre:hover {
+  background: var(--c-surface);
+}
+
+.filtre[aria-pressed='true'] {
+  background: var(--c-action);
+  border-color: var(--c-action);
+  color: var(--c-sur-action);
+  font-weight: 600;
+}
+
+.filtre span {
+  font-weight: 400;
+  margin-left: 0.25em;
+}
+
+/* Champs */
+.champ label {
+  display: block;
+  margin-bottom: var(--pas-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.champ input,
+.champ select {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1rem;
+  border: 1.5px solid var(--c-bordure);
+  border-radius: var(--rayon-petit);
+  background: var(--c-fond);
+  color: var(--c-texte);
+  font: inherit;
+  font-size: 1rem;
+}
+
+/* Étiquettes de statut */
+.pastille {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  border-radius: var(--rayon-petit);
+  background: var(--c-surface-2);
+  color: var(--c-titre);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pastille--lumiere {
+  background: var(--c-lumiere);
+  color: var(--c-sur-lumiere);
+}
+
+/* ---------------------------------------------------------------- Images */
+.photo {
+  border-radius: var(--rayon);
+  object-fit: cover;
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------- Auteurs surlignés */
 .auteur-direction {
   font-weight: 700;
+  color: var(--c-texte);
 }
 
 .auteur-membre {
-  font-weight: 650;
-  color: var(--epinette);
+  font-weight: 700;
+  color: var(--c-identite);
 }
 
 .auteur-direction.auteur-membre,
 .auteur-membre .auteur-direction {
-  color: inherit;
+  color: var(--c-texte);
+}
+
+/* ---------------------------------------------------------------- Aperçu : contenu à valider */
+.a-valider {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin: 0 0.4em;
+  padding: 0.1em 0.5em;
+  border: 1.5px dashed #8a5a00;
+  border-radius: var(--rayon-petit);
+  background: #fff4d6;
+  color: #5c3d00;
+  font-family: var(--f-texte);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  text-transform: none;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {

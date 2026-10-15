@@ -1,8 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getEntry } from 'astro:content';
-import { LANGUES, t } from '../../i18n/ui';
+import { LANGUES, t, lien } from '../../i18n/ui';
 import { paragraphes } from '../../lib/contenu';
+import AValider from '../../components/AValider.astro';
+import Icone from '../../components/Icone.astro';
 
 export function getStaticPaths() {
   return LANGUES.map((lang) => ({ params: { lang } }));
@@ -11,35 +13,47 @@ export function getStaticPaths() {
 const { lang } = Astro.params;
 const page = (await getEntry('pages', `${lang}/contact`))!.data;
 const site = (await getEntry('reglages', 'site'))!.data;
+const externe = (h: string) => /^https?:/.test(h);
 ---
 
-<Base lang={lang} titre={page.titre} section="contact">
-  <header class="entete-page cadre">
+<Base lang={lang} titre={page.titre} description={page.accroche} section="contact">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li aria-current="page">{page.titre}</li>
+      </ol>
+    </nav>
     <h1>{page.titre}</h1>
     {page.accroche && <p class="chapo">{page.accroche}</p>}
   </header>
 
   <div class="cadre contact">
-    <div class="voies">
+    <ul class="voies">
       {
         page.sections.map((s) => (
-          <section class="voie">
+          <li class="voie">
             <h2>{s.titre}</h2>
             {paragraphes(s.texte).map((p) => (
               <p>{p}</p>
             ))}
             {s.bouton_texte && s.bouton_lien && (
-              <a class="bouton bouton--contour" href={s.bouton_lien}>
+              <a class="lien-fleche" href={s.bouton_lien} data-externe={externe(s.bouton_lien) ? '' : undefined}>
                 {s.bouton_texte}
+                {externe(s.bouton_lien) && <span class="visuellement-cache">{t(lang, 'lien.externe')}</span>}
+                <Icone nom={externe(s.bouton_lien) ? 'externe' : 'fleche'} />
               </a>
             )}
-          </section>
+          </li>
         ))
       }
-    </div>
+    </ul>
 
     <aside class="coordonnees" id="coordonnees" aria-labelledby="coord-titre">
-      <h2 id="coord-titre">{t(lang, 'contact.coordonnees')}</h2>
+      <h2 id="coord-titre">
+        {t(lang, 'contact.coordonnees')}
+        <AValider lang={lang} note="Courriel et téléphone du labo, adresse à afficher" />
+      </h2>
       <dl>
         {
           site.courriel && (
@@ -82,33 +96,42 @@ const site = (await getEntry('reglages', 'site'))!.data;
 <style>
   .contact {
     display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 1fr);
-    gap: var(--pas-8);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-6);
     align-items: start;
   }
   .voies {
+    grid-column: span 7;
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: grid;
-    gap: var(--pas-7);
+    gap: var(--pas-5);
   }
   .voie {
-    border-top: 3px solid var(--epinette);
-    padding-top: var(--pas-4);
+    padding: var(--pas-6);
+    border-radius: var(--rayon);
+    background: var(--c-surface);
   }
   .voie h2 {
-    font-size: 1.6rem;
+    font-size: 1.75rem;
+    margin-bottom: var(--pas-3);
   }
-  .voie .bouton {
-    margin-top: var(--pas-2);
+  .voie p {
+    margin-bottom: var(--pas-3);
+    color: var(--c-texte-2);
   }
   .coordonnees {
-    background: var(--brume);
-    padding: var(--pas-6);
+    grid-column: 9 / span 4;
     position: sticky;
-    top: var(--pas-4);
-    scroll-margin-top: var(--pas-4);
+    top: var(--pas-6);
+    padding: var(--pas-6);
+    border-radius: var(--rayon);
+    background: var(--c-surface-2);
   }
   .coordonnees h2 {
-    font-size: 1.35rem;
+    font-size: 1.75rem;
   }
   .coordonnees dl {
     margin: 0;
@@ -117,19 +140,17 @@ const site = (await getEntry('reglages', 'site'))!.data;
     margin-top: var(--pas-4);
   }
   .coordonnees dt {
-    font-family: var(--titre);
     font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--sapin);
+    color: var(--c-titre);
   }
   .coordonnees dd {
     margin: var(--pas-1) 0 0;
-    font-size: 1.02rem;
-    line-height: 1.5;
+    line-height: 1.6;
   }
-  @media (max-width: 54rem) {
-    .contact {
-      grid-template-columns: 1fr;
+  @media (max-width: 54em) {
+    .voies,
+    .coordonnees {
+      grid-column: 1 / -1;
     }
     .coordonnees {
       position: static;

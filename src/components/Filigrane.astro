@@ -1,0 +1,11 @@
+---
+/* L'épinette du logo, en trait, pour les cartes sans photo. Purement décorative. */
+interface Props {
+  class?: string;
+}
+const { class: classe } = Astro.props;
+---
+
+<svg class={classe} viewBox="0 0 60 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"
+  ><path d="M30 6V98M30 8L18 22M30 8L42 22M30 22L14 38M30 22L46 38M30 38L10 56M30 38L50 56M30 56L6 76M30 56L54 76"></path></svg
+>

@@ -8,4 +8,5 @@ sujet: Facteurs associés à la santé mentale positive chez les jeunes
 nom_publication:
 - Deis Y
 ordre: 40
+a_valider: true
 ---

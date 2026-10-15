@@ -9,6 +9,12 @@ partenaires: 'Collaboratrice : I. Brisson. Patients partenaires : R. Bilodeau, A
 logo: /images/logos/coactif.png
 lien: https://oncopole.ca/projets-finances/co-actif-evaluation-de-implantabilite-et-des-effets-preliminaires-dun-programme-de-telepreadaptation-multimodale-en-groupe-pour-les-patients-atteints-de-cancer-et-les-proches-aidants/
 a_valider: true
+phare: true
+ordre: 1
+titre_court: coACTIF
+resume: "Un programme de télépréadaptation en groupe pour s'activer et s'informer dès le diagnostic de cancer, implanté au CHUM, au CHUS et à Chicoutimi."
+image: /images/projets/coactif.webp
+image_alt: Une kinésiologue guide un exercice dans la salle d'activité physique
 ---
 
 coACTIF est un programme multimodal de télépréadaptation, offert avant le début des traitements et supervisé par un kinésiologue spécialisé en cancer. Il combine des séances virtuelles d'activité physique en groupe, trois fois par semaine, et un programme éducatif qui couvre cinq grands thèmes : activité physique, nutrition, sommeil, bien-être, motivation et autogestion. Son but est d'outiller les patients et les proches aidants touchés par le cancer pour qu'ils puissent s'activer et s'informer dès le diagnostic.

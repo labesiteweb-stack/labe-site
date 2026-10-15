@@ -1,0 +1,215 @@
+---
+/* Pied de page : la crête du logo en ligne d'horizon, puis coordonnées, liens et réseaux. */
+import { getEntry } from 'astro:content';
+import { t, lien } from '../i18n/ui';
+
+interface Props {
+  lang: string;
+}
+const { lang } = Astro.props;
+const site = (await getEntry('reglages', 'site'))!.data;
+const explorer = [
+  { texte: t(lang, 'nav.labo'), href: lien(lang, 'le-labo') },
+  { texte: t(lang, 'nav.projets'), href: lien(lang, 'projets') },
+  { texte: t(lang, 'nav.equipe'), href: lien(lang, 'equipe') },
+  { texte: t(lang, 'nav.publications'), href: lien(lang, 'publications') },
+  { texte: t(lang, 'nav.nouvelles'), href: lien(lang, 'nouvelles') },
+  { texte: t(lang, 'nav.labo.vie'), href: lien(lang, 'vie-du-labo') },
+];
+---
+
+<div class="crete" aria-hidden="true">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none" focusable="false">
+    <path
+      d="M0 120V78L120 50L210 64L360 18L455 42L560 0L660 34L760 16L880 44L1000 24L1130 58L1250 38L1360 56L1440 44V120Z"
+    ></path>
+  </svg>
+</div>
+<footer class="pied">
+  <div class="cadre pied__grille">
+    <div class="pied__marque">
+      <img class="pied__logo pied__logo--clair" src={`/images/labe/labe-vertical-${lang}-blanc.png`} alt={`LABE, ${site.nom}`} width="700" height="543" loading="lazy" />
+      <img class="pied__logo pied__logo--fonce" src={`/images/labe/labe-vertical-${lang}.png`} alt={`LABE, ${site.nom}`} width="700" height="543" loading="lazy" />
+    </div>
+    <div>
+      <h2 class="pied__titre">{t(lang, 'contact.trouver')}</h2>
+      {
+        site.adresses.map((a) => (
+          <address class="pied__adresse">
+            <strong>{a.nom}</strong>
+            {a.lignes.map((l) => (
+              <>
+                <br />
+                {l}
+              </>
+            ))}
+          </address>
+        ))
+      }
+    </div>
+    <div>
+      <h2 class="pied__titre">{t(lang, 'contact.ecrire')}</h2>
+      <p class="pied__ligne">
+        {site.courriel && <a href={`mailto:${site.courriel}`}>{site.courriel}</a>}
+        {
+          site.telephone && (
+            <>
+              <br />
+              {site.telephone}
+            </>
+          )
+        }
+      </p>
+      {
+        (site.facebook || site.instagram || site.linkedin) && (
+          <>
+            <h2 class="pied__titre">{t(lang, 'pied.suivre')}</h2>
+            <ul class="pied__reseaux">
+              {site.instagram && (
+                <li>
+                  <a href={site.instagram}>Instagram</a>
+                </li>
+              )}
+              {site.linkedin && (
+                <li>
+                  <a href={site.linkedin}>LinkedIn</a>
+                </li>
+              )}
+              {site.facebook && (
+                <li>
+                  <a href={site.facebook}>Facebook</a>
+                </li>
+              )}
+            </ul>
+          </>
+        )
+      }
+    </div>
+    <div>
+      <h2 class="pied__titre">{t(lang, 'pied.explorer')}</h2>
+      <ul class="pied__liens">
+        {
+          explorer.map((l) => (
+            <li>
+              <a href={l.href}>{l.texte}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+  <div class="cadre pied__bas">
+    <span>© {new Date().getFullYear()} LABE, {site.nom}</span>
+    <span>{t(lang, 'pied.affiliations')}</span>
+  </div>
+</footer>
+
+<style>
+  .crete {
+    margin-top: clamp(4rem, 9vw, 7rem);
+    line-height: 0;
+  }
+  .crete svg {
+    display: block;
+    width: 100%;
+    height: clamp(56px, 7vw, 110px);
+    fill: var(--c-pied-fond);
+  }
+  .pied {
+    background: var(--c-pied-fond);
+    color: var(--c-pied-texte);
+    margin-top: -1px;
+    padding-top: var(--pas-5);
+  }
+  .pied a {
+    color: var(--c-pied-lien);
+  }
+  .pied a:hover {
+    color: var(--c-pied-titre);
+  }
+  .pied :focus-visible {
+    outline-color: var(--c-pied-focus);
+  }
+  .pied__grille {
+    display: grid;
+    grid-template-columns: minmax(9rem, 1fr) repeat(3, minmax(0, 1.2fr));
+    gap: var(--pas-7) var(--pas-6);
+    align-items: start;
+    font-size: 1rem;
+  }
+  .pied__logo {
+    width: 9.5rem;
+  }
+  .pied__logo--fonce {
+    display: none;
+  }
+  :global(:root[data-palette='b']) .pied__logo--clair {
+    display: none;
+  }
+  :global(:root[data-palette='b']) .pied__logo--fonce {
+    display: block;
+  }
+  .pied__titre {
+    margin: 0 0 var(--pas-3);
+    font-family: var(--f-texte);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-stretch: 115%;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-pied-titre);
+  }
+  .pied__titre:not(:first-child) {
+    margin-top: var(--pas-6);
+  }
+  .pied__adresse {
+    font-style: normal;
+    line-height: 1.6;
+    margin-bottom: var(--pas-4);
+  }
+  .pied__adresse strong {
+    color: var(--c-pied-titre);
+    font-weight: 600;
+  }
+  .pied__ligne {
+    line-height: 1.8;
+    margin: 0;
+  }
+  .pied__reseaux,
+  .pied__liens {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pied__reseaux {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-2) var(--pas-5);
+  }
+  .pied__liens li {
+    line-height: 2;
+  }
+  .pied__bas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--pas-3);
+    margin-top: var(--pas-8);
+    padding-block: var(--pas-5) var(--pas-6);
+    border-top: 1px solid var(--c-pied-trait);
+    font-size: 0.875rem;
+  }
+  @media (max-width: 56em) {
+    .pied__grille {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pied__marque {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 34em) {
+    .pied__grille {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

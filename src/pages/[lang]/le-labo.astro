@@ -1,0 +1,245 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getEntry, render } from 'astro:content';
+import { LANGUES, t, lien } from '../../i18n/ui';
+import { parLangue, publiees } from '../../lib/contenu';
+import Portrait from '../../components/Portrait.astro';
+import AValider from '../../components/AValider.astro';
+import Icone from '../../components/Icone.astro';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const page = (await getEntry('pages', `${lang}/le-labo`))!;
+const accueil = (await getEntry('pages', `${lang}/accueil`))!;
+const { Content } = await render(page);
+const d = page.data;
+const direction = (await parLangue('equipe', lang)).find((m) => m.data.role === 'direction');
+const Bio = direction ? (await render(direction)).Content : null;
+const albums = (await publiees('galerie'))
+  .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0))
+  .slice(0, 3);
+---
+
+<Base lang={lang} titre={d.titre} description={d.accroche} section="labo">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li aria-current="page">{d.titre}</li>
+      </ol>
+    </nav>
+    {d.etiquette && <p class="etiquette">{d.etiquette}</p>}
+    <h1>{d.titre}</h1>
+    {d.accroche && <p class="chapo">{d.accroche}<AValider si={d.a_valider} lang={lang} note="Textes rédigés à partir du CV" /></p>}
+  </header>
+
+  <section class="cadre mission" id="mission">
+    {d.image && <img class="photo mission__image" src={d.image} alt={d.image_alt ?? ''} width="2000" height="1333" />}
+    <div class="mission__texte prose"><Content /></div>
+  </section>
+
+  {
+    d.sections.length > 0 && (
+      <section class="section section--surface" aria-labelledby="travail">
+        <div class="cadre">
+          <h2 id="travail">{t(lang, 'labo.travail')}</h2>
+          <ol class="travail">
+            {d.sections.map((s, i) => (
+              <li class="travail__item">
+                <span class="travail__numero" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3>{s.titre}</h3>
+                <p>{s.texte}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section cadre" aria-labelledby="axes">
+    <h2 id="axes">{t(lang, 'accueil.axes')}</h2>
+    <ul class="axes">
+      {
+        accueil.data.axes.map((axe) => (
+          <li>
+            <h3>{axe.titre}</h3>
+            <p>{axe.texte}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    direction && (
+      <section class="cadre direction" id="direction" aria-labelledby="direction-titre">
+        <div class="direction__image">
+          <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} />
+          <AValider si={direction.data.a_valider} lang={lang} note="Portrait présumé" />
+        </div>
+        <div class="direction__texte">
+          <p class="etiquette">{t(lang, 'labo.direction')}</p>
+          <h2 id="direction-titre">{direction.data.nom}</h2>
+          {direction.data.programme && <p class="meta">{direction.data.programme}</p>}
+          <div class="prose">{Bio && <Bio />}</div>
+          {direction.data.distinctions.length > 0 && (
+            <ul class="direction__distinctions">
+              {direction.data.distinctions.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    albums.length > 0 && (
+      <section class="section cadre" aria-labelledby="vie">
+        <div class="tete-section">
+          <h2 id="vie">{t(lang, 'labo.vie')}</h2>
+          <a class="lien-fleche" href={lien(lang, 'vie-du-labo')}>
+            {t(lang, 'labo.vie.lien')}
+            <Icone nom="fleche" />
+          </a>
+        </div>
+        <ul class="albums">
+          {albums.map((a) => (
+            <li>
+              <a href={lien(lang, `vie-du-labo/${a.id}`)}>
+                <img class="photo" src={a.data.couverture ?? a.data.photos[0]} alt="" loading="lazy" />
+                <span>{a.data.titre}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .mission {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-6);
+    align-items: center;
+    padding-bottom: clamp(3.5rem, 8vw, 6rem);
+  }
+  .mission__image {
+    grid-column: span 7;
+    aspect-ratio: 3 / 2;
+  }
+  .mission__texte {
+    grid-column: 9 / span 4;
+    font-size: 1.125rem;
+  }
+  .travail {
+    list-style: none;
+    margin: var(--pas-6) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-5);
+  }
+  .travail__item {
+    padding: var(--pas-6);
+    border-radius: var(--rayon);
+    background: var(--c-fond);
+  }
+  .travail__numero {
+    display: block;
+    margin-bottom: var(--pas-4);
+    font-family: var(--f-titre);
+    font-size: 2.5rem;
+    line-height: 1;
+    color: var(--c-identite);
+  }
+  .travail__item p {
+    margin: 0;
+    color: var(--c-texte-2);
+  }
+  .axes {
+    list-style: none;
+    margin: var(--pas-6) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--pas-6) var(--pas-7);
+  }
+  .axes li {
+    border-top: 1px solid var(--c-trait);
+    padding-top: var(--pas-5);
+  }
+  .axes p {
+    margin: 0;
+    color: var(--c-texte-2);
+  }
+  .direction {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-6);
+    align-items: start;
+    padding-block: var(--pas-6) clamp(3.5rem, 8vw, 6rem);
+    border-top: 1px solid var(--c-trait);
+  }
+  .direction__image {
+    grid-column: span 4;
+    position: sticky;
+    top: var(--pas-6);
+  }
+  .direction__texte {
+    grid-column: 6 / span 7;
+  }
+  .direction__distinctions {
+    margin: var(--pas-5) 0 0;
+    padding-left: 1.2em;
+    color: var(--c-texte-2);
+  }
+  .albums {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-5);
+  }
+  .albums a {
+    display: grid;
+    gap: var(--pas-3);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .albums a:hover span {
+    text-decoration: underline;
+  }
+  .albums img {
+    aspect-ratio: 3 / 2;
+  }
+  @media (max-width: 54em) {
+    .mission__image,
+    .mission__texte,
+    .direction__image,
+    .direction__texte {
+      grid-column: 1 / -1;
+    }
+    .direction__image {
+      position: static;
+      max-width: 22rem;
+    }
+    .travail,
+    .axes,
+    .albums {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

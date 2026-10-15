@@ -14,6 +14,7 @@ npm run build   # construit le site dans dist/
 
 ## Où est quoi
 
+- `src/components/` : en-tête, pied de page, cartes, portraits
 - `src/content/` : tout le contenu, un fichier par fiche. Les dossiers `fr/` contiennent ce qui se traduit; une version anglaise ira dans `en/`.
   - `equipe/`, `projets/`, `nouvelles/`, `pages/` : contenu traduisible
   - `publications/`, `medias/`, `galerie/`, `partenaires/` : contenu sans langue
@@ -23,6 +24,20 @@ npm run build   # construit le site dans dist/
 - `public/images/` : logos, portraits, photos de la galerie (déjà optimisées)
 - `public/admin/` : le CMS (Sveltia, version figée) et sa configuration `config.yml`
 - `docs/mise-en-place-comptes.md` : comment le site est branché (comptes, adresses, réglages), la procédure du jour du nom de domaine et la liste de la remise
+
+## Le design « Plein air »
+
+- Toutes les couleurs passent par des rôles (`--c-texte`, `--c-action`, `--c-surface`, etc.) définis dans `src/styles/global.css`. La palette principale est dans `:root`.
+- Les palettes alternatives A, B et C (charte présentée en octobre 2026, couleurs UdeM) redéfinissent les mêmes rôles sous `[data-palette]`.
+- Version d'aperçu : sur toute construction qui n'est pas la production Vercel (`VERCEL_ENV` différent de `production`), le site affiche un bandeau, un sélecteur de palettes et les étiquettes « À valider ». Rien de tout cela n'apparaît sur le site en ligne.
+- Polices : Spectral (titres) et Archivo (texte et interface), auto-hébergées dans `public/fonts`.
+- Coins arrondis : 12 px pour les photos, cartes et encadrés; 6 px pour les boutons, champs et étiquettes.
+
+## Pages
+
+- `/fr/` accueil, `/fr/le-labo/`, `/fr/projets/` et une page par projet, `/fr/equipe/`, `/fr/publications/`, `/fr/medias/`, `/fr/nouvelles/`, `/fr/vie-du-labo/` et une page par album, `/fr/nous-joindre/`.
+- Les anciennes adresses (`/fr/recherche/`, `/fr/actualites/`, `/fr/galerie/`) redirigent vers les nouvelles (voir `vercel.json`).
+- Les projets phares (case « Projet phare » dans le CMS, cinq au plus selon l'ordre) alimentent le menu Projets et l'accueil.
 
 ## Règles du contenu
 

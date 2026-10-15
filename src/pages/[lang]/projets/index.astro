@@ -1,0 +1,219 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { LANGUES, t, lien } from '../../../i18n/ui';
+import { parLangue, projetsPhares, enCours, periode, slug, projetAUnePage } from '../../../lib/contenu';
+import CarteProjet from '../../../components/CarteProjet.astro';
+import AValider from '../../../components/AValider.astro';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const phares = await projetsPhares(lang);
+const tous = (await parLangue('projets', lang)).sort(
+  (a, b) => Number(enCours(b.data.fin)) - Number(enCours(a.data.fin)) || b.data.fin - a.data.fin || b.data.debut - a.data.debut,
+);
+const nbEnCours = tous.filter((p) => enCours(p.data.fin)).length;
+const nbDiriges = tous.filter((p) => p.data.role !== 'co-chercheuse').length;
+---
+
+<Base lang={lang} titre={t(lang, 'projets.titre')} description={t(lang, 'projets.intro')} section="projets">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li aria-current="page">{t(lang, 'projets.titre')}</li>
+      </ol>
+    </nav>
+    <h1>{t(lang, 'projets.titre')}</h1>
+    <p class="chapo">{t(lang, 'projets.intro')}</p>
+  </header>
+
+  {
+    phares.length > 0 && (
+      <section class="cadre phares" aria-labelledby="phares">
+        <h2 id="phares" class="visuellement-cache">
+          {t(lang, 'projets.phares')}
+        </h2>
+        <div class="phares__grille">
+          {phares.map((p) => (
+            <CarteProjet lang={lang} p={p} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--surface" aria-labelledby="tous">
+    <div class="cadre">
+      <div class="tous__tete">
+        <h2 id="tous">{t(lang, 'projets.tous')} <span class="tous__nombre">({tous.length})</span></h2>
+        <div class="tous__filtres" data-filtres hidden>
+          <div class="filtres" role="group" aria-label={t(lang, 'projets.filtre')}>
+            <button class="filtre" type="button" aria-pressed="true" data-statut="">{t(lang, 'projets.tout')} <span>{tous.length}</span></button>
+            <button class="filtre" type="button" aria-pressed="false" data-statut="en-cours">{t(lang, 'projets.en_cours')} <span>{nbEnCours}</span></button>
+            <button class="filtre" type="button" aria-pressed="false" data-statut="termine">{t(lang, 'projets.termines')} <span>{tous.length - nbEnCours}</span></button>
+          </div>
+          <div class="filtres" role="group" aria-label="Rôle du LABE">
+            <button class="filtre" type="button" aria-pressed="false" data-role="dirige">{t(lang, 'projets.diriges')} <span>{nbDiriges}</span></button>
+            <button class="filtre" type="button" aria-pressed="false" data-role="contribue">{t(lang, 'projets.contribue')} <span>{tous.length - nbDiriges}</span></button>
+          </div>
+        </div>
+      </div>
+      <p class="visuellement-cache" aria-live="polite" data-annonce></p>
+      <ul class="liste">
+        {
+          tous.map((p) => {
+            const d = p.data;
+            const ec = enCours(d.fin);
+            return (
+              <li class="projet" data-projet data-statut={ec ? 'en-cours' : 'termine'} data-role={d.role === 'co-chercheuse' ? 'contribue' : 'dirige'}>
+                <div class="projet__cote">
+                  <span class="projet__periode">{periode(d.debut, d.fin)}</span>
+                  <span class:list={['pastille', { 'pastille--calme': !ec }]}>
+                    {ec ? t(lang, 'projets.statut_en_cours') : t(lang, 'projets.statut_termine')}
+                  </span>
+                </div>
+                <div>
+                  <h3 class="projet__titre">
+                    {projetAUnePage(p) ? <a href={lien(lang, `projets/${slug(p.id)}`)}>{d.titre}</a> : d.titre}
+                    <AValider si={d.a_valider} lang={lang} />
+                  </h3>
+                  <p class="meta projet__meta">
+                    {d.financement}
+                    {d.chercheur_principal && (
+                      <>
+                        {' · '}
+                        {t(lang, 'projets.chercheur_principal')} : {d.chercheur_principal}
+                      </>
+                    )}
+                    {' · '}
+                    {t(lang, `projets.${d.role}`)}
+                  </p>
+                </div>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const zone = document.querySelector<HTMLElement>('[data-filtres]');
+  if (zone) {
+    zone.hidden = false;
+    const items = [...document.querySelectorAll<HTMLElement>('[data-projet]')];
+    const statuts = [...zone.querySelectorAll<HTMLButtonElement>('[data-statut]')];
+    const roles = [...zone.querySelectorAll<HTMLButtonElement>('[data-role]')];
+    const annonce = document.querySelector<HTMLElement>('[data-annonce]')!;
+    let statut = '';
+    let role = '';
+    const appliquer = () => {
+      let n = 0;
+      for (const li of items) {
+        const ok = (!statut || li.dataset.statut === statut) && (!role || li.dataset.role === role);
+        li.hidden = !ok;
+        if (ok) n++;
+      }
+      annonce.textContent = `${n} projet${n > 1 ? 's' : ''}`;
+    };
+    statuts.forEach((b) =>
+      b.addEventListener('click', () => {
+        statut = b.dataset.statut ?? '';
+        statuts.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        appliquer();
+      }),
+    );
+    roles.forEach((b) =>
+      b.addEventListener('click', () => {
+        const actif = b.getAttribute('aria-pressed') === 'true';
+        role = actif ? '' : (b.dataset.role ?? '');
+        roles.forEach((x) => x.setAttribute('aria-pressed', String(!actif && x === b)));
+        appliquer();
+      }),
+    );
+  }
+</script>
+
+<style>
+  .phares {
+    padding-bottom: clamp(3.5rem, 8vw, 6rem);
+  }
+  .phares__grille {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-7) var(--pas-5);
+  }
+  .tous__tete {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--pas-5);
+    margin-bottom: var(--pas-6);
+  }
+  .tous__tete h2 {
+    margin: 0;
+  }
+  .tous__nombre {
+    color: var(--c-texte-2);
+    font-weight: 400;
+  }
+  .tous__filtres {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pas-3);
+  }
+  .liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .projet {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: var(--pas-5);
+    padding-block: var(--pas-5);
+    border-top: 1px solid var(--c-trait);
+  }
+  .projet__cote {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pas-2);
+  }
+  .projet__periode {
+    font-weight: 600;
+    color: var(--c-titre);
+  }
+  .pastille--calme {
+    background: var(--c-fond);
+    color: var(--c-texte-2);
+  }
+  .projet__titre {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    margin-bottom: var(--pas-2);
+    max-width: 52rem;
+  }
+  .projet__meta {
+    margin: 0;
+  }
+  @media (max-width: 54em) {
+    .phares__grille {
+      grid-template-columns: 1fr;
+    }
+    .projet {
+      grid-template-columns: 1fr;
+      gap: var(--pas-2);
+    }
+    .projet__cote {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--pas-3);
+    }
+  }
+</style>

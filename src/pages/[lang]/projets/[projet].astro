@@ -1,0 +1,262 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { render } from 'astro:content';
+import { LANGUES, t, lien } from '../../../i18n/ui';
+import { parLangue, slug, periode, enCours, titreCourt, projetsPhares } from '../../../lib/contenu';
+import AValider from '../../../components/AValider.astro';
+import Icone from '../../../components/Icone.astro';
+
+export async function getStaticPaths() {
+  const chemins = [];
+  for (const lang of LANGUES) {
+    for (const p of await parLangue('projets', lang)) {
+      chemins.push({ params: { lang, projet: slug(p.id) }, props: { p } });
+    }
+  }
+  return chemins;
+}
+
+const { lang } = Astro.params;
+const { p } = Astro.props;
+const { Content } = await render(p);
+const d = p.data;
+const ec = enCours(d.fin);
+const aTitreCourt = Boolean(d.titre_court);
+const autres = (await projetsPhares(lang)).filter((x) => x.id !== p.id).slice(0, 3);
+const details = [
+  { cle: t(lang, 'projets.financement'), valeur: d.financement },
+  { cle: t(lang, 'projets.periode'), valeur: periode(d.debut, d.fin) },
+  { cle: t(lang, 'projets.chercheur_principal'), valeur: d.chercheur_principal ?? (d.role === 'principale' ? 'Isabelle Doré' : undefined) },
+  { cle: t(lang, 'projets.co_chercheurs'), valeur: d.co_chercheurs },
+  { cle: t(lang, 'projets.partenaires'), valeur: d.partenaires },
+].filter((x) => x.valeur);
+---
+
+<Base lang={lang} titre={titreCourt(p)} description={d.resume ?? d.titre} image={d.image} section="projets">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li><a href={lien(lang, 'projets')}>{t(lang, 'projets.titre')}</a></li>
+        <li aria-current="page">{titreCourt(p)}</li>
+      </ol>
+    </nav>
+    <div class="fiche__tete">
+      <div class="fiche__titres">
+        <ul class="fiche__pastilles">
+          <li class="pastille">{ec ? t(lang, 'projets.statut_en_cours') : t(lang, 'projets.statut_termine')}</li>
+          <li class="pastille pastille--neutre">{periode(d.debut, d.fin)}</li>
+          <li class="pastille pastille--neutre">{t(lang, `projets.${d.role}`)}</li>
+        </ul>
+        <h1 class:list={{ 'fiche__h1--long': !aTitreCourt }}>{titreCourt(p)}<AValider si={d.a_valider} lang={lang} /></h1>
+        {aTitreCourt && <p class="fiche__complet">{d.titre}</p>}
+      </div>
+      {
+        (d.logo || d.lien) && (
+          <div class="fiche__site">
+            {d.logo && <img class="fiche__logo" src={d.logo} alt={`Logo ${titreCourt(p)}`} />}
+            {d.lien && (
+              <a class="bouton" href={d.lien}>
+                {t(lang, 'projets.site')}
+                <span class="visuellement-cache">{t(lang, 'lien.externe')}</span>
+                <Icone nom="externe" />
+              </a>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </header>
+
+  {
+    d.image && (
+      <figure class="cadre fiche__figure">
+        <img class="photo" src={d.image} alt={d.image_alt ?? ''} width="1600" height="1067" />
+      </figure>
+    )
+  }
+
+  <section class="cadre fiche__corps">
+    <div class="prose fiche__texte">
+      {d.resume && <p class="fiche__resume">{d.resume}</p>}
+      <Content />
+    </div>
+  </section>
+
+  {
+    details.length > 0 && (
+      <section class="cadre" aria-labelledby="details">
+        <div class="details">
+          <h2 id="details">{t(lang, 'projets.details')}</h2>
+          <dl>
+            {details.map((x) => (
+              <div>
+                <dt>{x.cle}</dt>
+                <dd>{x.valeur}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    autres.length > 0 && (
+      <section class="cadre autres" aria-labelledby="autres">
+        <h2 id="autres" class="etiquette">
+          {t(lang, 'projets.autres')}
+        </h2>
+        <ul>
+          {autres.map((a) => (
+            <li>
+              <a href={lien(lang, `projets/${slug(a.id)}`)}>{titreCourt(a)}</a>
+              <p class="meta">
+                {periode(a.data.debut, a.data.fin)} · {a.data.financement}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .fiche__tete {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-5);
+    align-items: end;
+  }
+  .fiche__titres {
+    grid-column: span 8;
+  }
+  .fiche__pastilles {
+    list-style: none;
+    margin: 0 0 var(--pas-5);
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-2);
+  }
+  .pastille--neutre {
+    background: var(--c-surface);
+  }
+  .fiche__titres h1 {
+    font-size: clamp(2.6rem, 6vw, 4.5rem);
+    line-height: 1;
+  }
+  .fiche__titres h1.fiche__h1--long {
+    font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+    line-height: 1.15;
+  }
+  .fiche__complet {
+    margin: 0;
+    max-width: 44rem;
+    font-family: var(--f-titre);
+    font-style: italic;
+    font-size: clamp(1.2rem, 2vw, 1.45rem);
+    line-height: 1.45;
+    color: var(--c-texte-2);
+  }
+  .fiche__site {
+    grid-column: 10 / span 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pas-4);
+  }
+  .fiche__logo {
+    max-height: 3rem;
+    max-width: 14rem;
+    width: auto;
+  }
+  .fiche__figure {
+    margin-block: var(--pas-4) clamp(2.5rem, 6vw, 4.5rem);
+  }
+  .fiche__figure img {
+    aspect-ratio: 21 / 10;
+    object-position: 50% 40%;
+  }
+  .fiche__corps {
+    padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+  }
+  .fiche__texte {
+    font-size: 1.125rem;
+  }
+  .fiche__resume {
+    font-size: 1.3rem;
+    line-height: 1.55;
+    color: var(--c-texte);
+  }
+  .details {
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3.5rem);
+    border-radius: var(--rayon);
+    background: var(--c-surface);
+  }
+  .details h2 {
+    font-size: 1.875rem;
+    margin-bottom: var(--pas-5);
+  }
+  .details dl {
+    margin: 0;
+  }
+  .details dl > div {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: var(--pas-2) var(--pas-5);
+    padding-block: var(--pas-4);
+    border-top: 1px solid var(--c-trait);
+    font-size: 1rem;
+  }
+  .details dt {
+    font-weight: 600;
+    color: var(--c-titre);
+  }
+  .details dd {
+    margin: 0;
+  }
+  .autres {
+    padding-top: clamp(3rem, 7vw, 5rem);
+  }
+  .autres ul {
+    list-style: none;
+    margin: var(--pas-4) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-5);
+  }
+  .autres li {
+    border-top: 1px solid var(--c-trait);
+    padding-top: var(--pas-4);
+  }
+  .autres a {
+    font-family: var(--f-titre);
+    font-size: 1.5rem;
+    text-decoration: none;
+  }
+  .autres a:hover {
+    text-decoration: underline;
+  }
+  .autres .meta {
+    margin: var(--pas-2) 0 0;
+  }
+  @media (max-width: 54em) {
+    .fiche__titres,
+    .fiche__site {
+      grid-column: 1 / -1;
+    }
+    .details dl > div {
+      grid-template-columns: 1fr;
+    }
+    .autres ul {
+      grid-template-columns: 1fr;
+    }
+    .fiche__figure img {
+      aspect-ratio: 3 / 2;
+    }
+  }
+</style>

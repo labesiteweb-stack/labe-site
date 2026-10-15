@@ -10,6 +10,8 @@ nom_publication:
 - Doré I
 - Dore I
 ordre: 1
+photo: /images/equipe/isabelle-dore.webp
+a_valider: true
 ---
 
 Isabelle Doré est professeure agrégée à l'École de kinésiologie et des sciences de l'activité physique de la Faculté de médecine de l'Université de Montréal, avec une affiliation secondaire au Département de médecine sociale et préventive de l'École de santé publique. Elle est chercheuse régulière au Centre de recherche du CHUM (CRCHUM) et chercheuse-boursière Junior 2 du Fonds de recherche du Québec – Santé.

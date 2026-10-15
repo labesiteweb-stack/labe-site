@@ -108,7 +108,9 @@ collections:
         buttons: [bold, italic, link, bulleted-list, numbered-list]
         editor_components: []
       - { name: lien, label: Lien « En savoir plus » (facultatif), widget: string, required: false, i18n: duplicate, hint: 'Adresse complète, qui commence par https://' }
-      - { name: image, label: Image (facultatif), widget: image, required: false, i18n: duplicate }
+      - { name: extrait, label: Extrait pour la carte (facultatif), widget: text, required: false, i18n: true, hint: 'Deux phrases au plus. Laisser vide pour reprendre le début du texte.' }
+      - { name: image, label: Image (facultatif), widget: image, required: false, i18n: duplicate, hint: Format paysage. Sans image, la carte affiche l'épinette du logo. }
+      - { name: image_alt, label: Description de l'image, widget: string, required: false, i18n: true, hint: "Obligatoire si une image est ajoutée : décrire en une phrase ce qu'on y voit, pour les personnes qui ne la voient pas." }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
       - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
 
@@ -131,8 +133,9 @@ collections:
       - { name: date_texte, label: Date affichée (facultatif), widget: string, required: false, hint: 'Pour une date approximative, par exemple « Été 2023 ».' }
       - { name: lien, label: Lien, widget: string, required: false }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
 
-  # ------------------------------------------------------------------ Recherche
+  # ------------------------------------------------------------------ Projets
   - name: projets
     label: Projets
     label_singular: Projet
@@ -151,8 +154,9 @@ collections:
       filters:
         - { name: diriges, label: Dirigés par le LABE, field: role, in: [principale, co-principale] }
         - { name: contribue, label: Contribue aussi à, field: role, eq: co-chercheuse }
+        - { name: phares, label: Projets phares, field: phare, eq: true }
         - { name: a-valider, label: À valider, field: a_valider, eq: true }
-    media_folder: /public/images/logos
+    media_folder: /public/images/projets
     public_folder: /images/logos
     fields:
       - { name: titre, label: Titre, widget: text, i18n: true }
@@ -178,8 +182,14 @@ collections:
         buttons: [bold, italic, link, bulleted-list, numbered-list]
         editor_components: []
         hint: Une description rend le titre cliquable et crée la page du projet.
-      - { name: logo, label: Logo du projet (facultatif), widget: image, required: false, i18n: duplicate }
+      - { name: logo, label: Logo du projet (facultatif), widget: image, required: false, i18n: duplicate, media_folder: /public/images/logos, public_folder: /images/logos }
       - { name: lien, label: Site du projet (facultatif), widget: string, required: false, i18n: duplicate }
+      - { name: phare, label: Projet phare, widget: boolean, default: false, required: false, i18n: duplicate, hint: "Affiché dans le menu Projets et sur l'accueil. Cinq au plus : au-delà, seuls les cinq premiers selon l'ordre s'affichent." }
+      - { name: titre_court, label: Titre court, widget: string, required: false, i18n: true, hint: "40 caractères au plus. Sert dans le menu et sur les cartes. Ex. : « coACTIF »" }
+      - { name: resume, label: Résumé en une phrase, widget: text, required: false, i18n: true, hint: Affiché sur la carte du projet et en tête de sa page. }
+      - { name: image, label: Photo du projet (facultatif), widget: image, required: false, i18n: duplicate, hint: Format paysage. Sans photo, la carte affiche le logo ou l'épinette. }
+      - { name: image_alt, label: Description de la photo, widget: string, required: false, i18n: true, hint: Obligatoire si une photo est ajoutée. }
+      - { name: ordre, label: Ordre parmi les projets phares, widget: number, value_type: int, default: 100, required: false, i18n: duplicate, hint: Les plus petits nombres s'affichent en premier. }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
       - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
 
@@ -219,7 +229,16 @@ collections:
       - { name: source, label: Revue ou éditeur, widget: string, required: false }
       - { name: details, label: 'Volume, numéro et pages', widget: string, required: false }
       - { name: lien, label: Lien (DOI ou page web), widget: string, required: false, hint: 'Adresse complète, par exemple https://doi.org/10.1234/abcd' }
+      - name: langue
+        label: Langue du titre (facultatif)
+        widget: select
+        required: false
+        options:
+          - { label: Français, value: fr }
+          - { label: Anglais, value: en }
+        hint: Laisser vide pour une détection automatique. Sert aux lecteurs d'écran.
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
 
   # ------------------------------------------------------------------ Équipe
   - name: equipe
@@ -275,7 +294,17 @@ collections:
         required: false
         i18n: true
         field: { name: distinction, label: Distinction, widget: string }
-      - { name: photo, label: Photo (format portrait), widget: image, required: false, i18n: duplicate }
+      - { name: photo, label: Photo, widget: image, required: false, i18n: duplicate, hint: Elle sera recadrée en carré. Sans photo, les initiales s'affichent. }
+      - name: cadrage
+        label: Cadrage du portrait
+        widget: select
+        default: haut
+        required: false
+        i18n: duplicate
+        options:
+          - { label: Garder le haut de la photo, value: haut }
+          - { label: Garder le centre, value: centre }
+          - { label: Garder le bas, value: bas }
       - name: body
         label: Biographie (facultatif)
         widget: markdown
@@ -293,10 +322,11 @@ collections:
         hint: "Format « Nom Initiales », par exemple « Piché A ». Sert à surligner la personne dans les publications."
       - { name: ordre, label: Ordre d'affichage, widget: number, value_type: int, default: 100, i18n: duplicate, hint: Les plus petits nombres s'affichent en premier dans chaque section. }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
 
   # ------------------------------------------------------------------ Galerie
   - name: galerie
-    label: Galerie
+    label: Vie du labo
     label_singular: Album
     icon: photo_library
     folder: src/content/galerie
@@ -345,6 +375,7 @@ collections:
           - { label: Partenaire, value: partenaire }
       - { name: lien, label: Site web (facultatif), widget: string, required: false }
       - { name: ordre, label: Ordre d'affichage, widget: number, value_type: int, default: 100 }
+      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
 
   # ------------------------------------------------------------------ Pages fixes
   - name: pages
@@ -357,14 +388,37 @@ collections:
         file: src/content/pages/{{locale}}/accueil.md
         i18n: true
         fields:
-          - { name: titre, label: Titre principal, widget: string, i18n: true }
+          - { name: etiquette, label: Petite ligne au-dessus du titre, widget: string, required: false, i18n: true }
+          - { name: titre, label: Promesse (grand titre), widget: string, i18n: true, hint: "Une phrase. Entourer un mot d'astérisques pour le mettre en italique : *bouger*" }
           - { name: accroche, label: Phrase d'accroche, widget: text, i18n: true }
+          - name: portes
+            label: Par où commencer? (trois portes d'entrée)
+            label_singular: porte
+            widget: list
+            i18n: true
+            summary: '{{titre}}'
+            fields:
+              - { name: etiquette, label: Public visé, widget: string, hint: 'Ex. : « Futurs étudiants »' }
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text, hint: Deux phrases au plus. }
+              - { name: bouton_texte, label: Texte du lien, widget: string }
+              - { name: bouton_lien, label: Adresse du lien, widget: string, hint: 'Une page du site (ex. /fr/equipe/#etudier) ou une adresse complète (https://…)' }
           - name: body
-            label: Présentation
+            label: Présentation du labo (bloc avec la photo d'Isabelle)
             widget: markdown
             i18n: true
             buttons: [bold, italic, link]
             editor_components: []
+          - name: sections
+            label: Titre et second paragraphe du bloc « Le labo »
+            label_singular: bloc
+            widget: list
+            i18n: true
+            max: 1
+            summary: '{{titre}}'
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text }
           - name: axes
             label: Ce que nous étudions
             label_singular: axe
@@ -374,6 +428,33 @@ collections:
             fields:
               - { name: titre, label: Titre, widget: string }
               - { name: texte, label: Texte, widget: text }
+          - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+      - name: le-labo
+        label: Le labo
+        file: src/content/pages/{{locale}}/le-labo.md
+        i18n: true
+        fields:
+          - { name: etiquette, label: Petite ligne au-dessus du titre, widget: string, required: false, i18n: true }
+          - { name: titre, label: Titre, widget: string, i18n: true }
+          - { name: accroche, label: Mission en une phrase, widget: text, i18n: true }
+          - { name: image, label: Photo, widget: image, required: false, i18n: duplicate, media_folder: /public/images/accueil, public_folder: /images/accueil }
+          - { name: image_alt, label: Description de la photo, widget: string, required: false, i18n: true }
+          - name: body
+            label: Présentation
+            widget: markdown
+            i18n: true
+            buttons: [bold, italic, link]
+            editor_components: []
+          - name: sections
+            label: Notre façon de travailler
+            label_singular: point
+            widget: list
+            i18n: true
+            summary: '{{titre}}'
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text }
+          - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
       - name: contact
         label: Nous joindre
         file: src/content/pages/{{locale}}/contact.md

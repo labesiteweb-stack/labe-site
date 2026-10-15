@@ -1,0 +1,121 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LANGUES, t, lien, dateLongue } from '../../i18n/ui';
+import { publiees } from '../../lib/contenu';
+import AValider from '../../components/AValider.astro';
+import Icone from '../../components/Icone.astro';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const medias = (await publiees('medias')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const annees = [...new Set(medias.map((m) => m.data.date.getUTCFullYear()))];
+---
+
+<Base lang={lang} titre={t(lang, 'medias.titre')} description={t(lang, 'medias.intro')} section="publications">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li><a href={lien(lang, 'publications')}>{t(lang, 'publications.titre')}</a></li>
+        <li aria-current="page">{t(lang, 'medias.titre')}</li>
+      </ol>
+    </nav>
+    <h1>{t(lang, 'medias.titre')}</h1>
+    <p class="chapo">{t(lang, 'medias.intro')}</p>
+  </header>
+
+  {
+    annees.map((a) => (
+      <section class="cadre annee" aria-labelledby={`m-${a}`}>
+        <h2 id={`m-${a}`}>{a}</h2>
+        <ul class="liste">
+          {medias
+            .filter((m) => m.data.date.getUTCFullYear() === a)
+            .map((m) => (
+              <li class="media">
+                <p class="media__source">
+                  <span class="etiquette">{m.data.media}</span>
+                  <span class="meta">
+                    {m.data.date_texte ?? dateLongue(m.data.date, lang)}
+                  </span>
+                </p>
+                <h3 class="media__titre">
+                  {m.data.lien ? (
+                    <a href={m.data.lien}>
+                      {m.data.titre}
+                      <span class="visuellement-cache">{t(lang, 'lien.externe')}</span>
+                      <Icone nom="externe" taille={15} class="media__icone" />
+                    </a>
+                  ) : (
+                    m.data.titre
+                  )}
+                  <AValider si={m.data.a_valider} lang={lang} />
+                </h3>
+              </li>
+            ))}
+        </ul>
+      </section>
+    ))
+  }
+</Base>
+
+<style>
+  .annee {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    padding-top: var(--pas-7);
+  }
+  .annee h2 {
+    grid-column: span 2;
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+  .liste {
+    grid-column: 3 / span 10;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .media {
+    padding-block: var(--pas-4);
+    border-top: 1px solid var(--c-trait);
+  }
+  .media__source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--pas-1) var(--pas-3);
+    margin: 0 0 var(--pas-1);
+  }
+  .media__source .etiquette {
+    margin: 0;
+    display: inline;
+  }
+  .media__titre {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .media__titre a {
+    text-decoration: none;
+  }
+  .media__titre a:hover {
+    text-decoration: underline;
+  }
+  .media__titre :global(.media__icone) {
+    display: inline;
+    vertical-align: -0.1em;
+    margin-left: 0.3em;
+  }
+  @media (max-width: 54em) {
+    .annee h2,
+    .liste {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

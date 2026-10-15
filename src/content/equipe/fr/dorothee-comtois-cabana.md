@@ -13,4 +13,5 @@ distinctions:
 nom_publication:
 - Comtois-Cabana D
 ordre: 33
+a_valider: true
 ---

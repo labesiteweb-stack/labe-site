@@ -1,0 +1,175 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LANGUES, t, lien } from '../../i18n/ui';
+import { parLangue } from '../../lib/contenu';
+import CarteNouvelle from '../../components/CarteNouvelle.astro';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const nouvelles = (await parLangue('nouvelles', lang)).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const [une, ...autres] = nouvelles;
+const nbDistinctions = nouvelles.filter((n) => n.data.categorie === 'distinction').length;
+const annees = [...new Set(nouvelles.map((n) => n.data.date.getUTCFullYear()))];
+---
+
+<Base lang={lang} titre={t(lang, 'nouvelles.titre')} description={t(lang, 'nouvelles.intro')} section="nouvelles">
+  <header class="cadre entete-page tete">
+    <div>
+      <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+        <ol>
+          <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+          <li aria-current="page">{t(lang, 'nouvelles.titre')}</li>
+        </ol>
+      </nav>
+      <h1>{t(lang, 'nouvelles.titre')}</h1>
+      <p class="chapo">{t(lang, 'nouvelles.intro')}</p>
+    </div>
+    <div class="tete__filtres" data-filtres hidden>
+      <div class="filtres" role="group" aria-label="Type">
+        <button class="filtre" type="button" aria-pressed="true" data-categorie="">{t(lang, 'nouvelles.toutes')} <span>{nouvelles.length}</span></button>
+        <button class="filtre" type="button" aria-pressed="false" data-categorie="nouvelle"
+          >{t(lang, 'nouvelles.nouvelles')} <span>{nouvelles.length - nbDistinctions}</span></button
+        >
+        <button class="filtre" type="button" aria-pressed="false" data-categorie="distinction"
+          >{t(lang, 'nouvelles.distinctions')} <span>{nbDistinctions}</span></button
+        >
+      </div>
+      <div class="champ champ--ligne">
+        <label for="annee">{t(lang, 'nouvelles.annee')}</label>
+        <select id="annee" data-annee>
+          <option value="">{t(lang, 'nouvelles.toutes_annees')}</option>
+          {annees.map((a) => <option value={a}>{a}</option>)}
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <section class="cadre" aria-label={t(lang, 'nouvelles.titre')}>
+    <p class="visuellement-cache" aria-live="polite" data-annonce></p>
+    <ul class="grille" data-grille>
+      {une && (
+        <li class="grille__une" data-item>
+          <CarteNouvelle lang={lang} n={une} une complet niveau="h2" />
+        </li>
+      )}
+      {
+        autres.map((n) => (
+          <li data-item>
+            <CarteNouvelle lang={lang} n={n} complet niveau="h2" />
+          </li>
+        ))
+      }
+    </ul>
+    <p class="vide" data-vide hidden>{t(lang, 'nouvelles.aucune')}</p>
+  </section>
+</Base>
+
+<script>
+  const zone = document.querySelector<HTMLElement>('[data-filtres]');
+  if (zone) {
+    zone.hidden = false;
+    const items = [...document.querySelectorAll<HTMLElement>('[data-item]')];
+    const boutons = [...zone.querySelectorAll<HTMLButtonElement>('[data-categorie]')];
+    const choix = zone.querySelector<HTMLSelectElement>('[data-annee]')!;
+    const vide = document.querySelector<HTMLElement>('[data-vide]')!;
+    const annonce = document.querySelector<HTMLElement>('[data-annonce]')!;
+    const grille = document.querySelector<HTMLElement>('[data-grille]')!;
+    let categorie = '';
+    const appliquer = () => {
+      let n = 0;
+      for (const li of items) {
+        const carte = li.querySelector<HTMLElement>('[data-categorie]')!;
+        const ok = (!categorie || carte.dataset.categorie === categorie) && (!choix.value || carte.dataset.annee === choix.value);
+        li.hidden = !ok;
+        if (ok) n++;
+      }
+      grille.classList.toggle('est-filtree', Boolean(categorie || choix.value));
+      vide.hidden = n > 0;
+      annonce.textContent = `${n} nouvelle${n > 1 ? 's' : ''}`;
+    };
+    boutons.forEach((b) =>
+      b.addEventListener('click', () => {
+        categorie = b.dataset.categorie ?? '';
+        boutons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        appliquer();
+      }),
+    );
+    choix.addEventListener('change', appliquer);
+  }
+</script>
+
+<style>
+  .tete {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-5);
+    align-items: end;
+  }
+  .tete > div:first-child {
+    grid-column: span 7;
+  }
+  .tete__filtres {
+    grid-column: 8 / span 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--pas-3);
+  }
+  .champ--ligne {
+    display: flex;
+    align-items: center;
+    gap: var(--pas-3);
+  }
+  .champ--ligne label {
+    margin: 0;
+  }
+  .champ--ligne select {
+    width: auto;
+    min-width: 9rem;
+  }
+  .grille {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-5);
+  }
+  .grille > li {
+    display: flex;
+  }
+  .grille > li > :global(*) {
+    flex: 1;
+  }
+  .grille__une {
+    grid-column: span 2;
+  }
+  .grille.est-filtree .grille__une {
+    grid-column: auto;
+  }
+  .vide {
+    padding-top: var(--pas-5);
+  }
+  @media (max-width: 64em) {
+    .grille {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 54em) {
+    .tete > div:first-child,
+    .tete__filtres {
+      grid-column: 1 / -1;
+      align-items: flex-start;
+    }
+    .grille {
+      grid-template-columns: 1fr;
+    }
+    .grille__une {
+      grid-column: auto;
+    }
+  }
+</style>

@@ -10,4 +10,5 @@ nom_publication:
 - Nassif M
 - Nassif Fady
 ordre: 45
+a_valider: true
 ---

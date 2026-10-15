@@ -9,4 +9,5 @@ nom_publication:
 - Siqueira AUB
 - de Siqueira AUB
 ordre: 43
+a_valider: true
 ---

@@ -1,0 +1,21 @@
+---
+/* Étiquette « À valider » : visible seulement sur la version d'aperçu, jamais sur le site en ligne. */
+import { APERCU } from '../lib/contenu';
+import { t } from '../i18n/ui';
+
+interface Props {
+  si?: boolean;
+  lang?: string;
+  note?: string;
+}
+const { si = true, lang = 'fr', note } = Astro.props;
+---
+
+{
+  APERCU && si && (
+    <span class="a-valider" title={note}>
+      {t(lang, 'apercu.a_valider')}
+      {note && <span class="visuellement-cache"> : {note}</span>}
+    </span>
+  )
+}

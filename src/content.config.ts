@@ -32,6 +32,9 @@ const equipe = defineCollection({
     codirection: texte(),
     distinctions: z.array(z.string()).default([]),
     photo: texte(),
+    // Cadrage du portrait carré : quelle partie de la photo garder.
+    cadrage: z.enum(['haut', 'centre', 'bas']).default('haut'),
+    a_valider: z.boolean().default(false),
     // Façons dont le nom apparaît dans les listes d'auteurs (ex. « Piché A »), pour le surligner dans les publications.
     nom_publication: z.array(z.string()).default([]),
     ordre: z.number().default(100),
@@ -52,6 +55,13 @@ const projets = defineCollection({
     partenaires: texte(),
     logo: texte(),
     lien: url(),
+    // Projets phares : affichés dans le menu Projets et sur l'accueil (cinq au plus, selon l'ordre).
+    phare: z.boolean().default(false),
+    titre_court: texte(),
+    resume: texte(),
+    image: texte(),
+    image_alt: texte(),
+    ordre: z.number().default(100),
     a_valider: z.boolean().default(false),
     brouillon: z.boolean().default(false),
   }),
@@ -68,6 +78,9 @@ const publications = defineCollection({
     source: texte(),
     details: texte(),
     lien: url(),
+    // Langue du titre : sert aux lecteurs d'écran. Vide = détectée automatiquement.
+    langue: z.preprocess(vide, z.enum(['fr', 'en']).optional()),
+    a_valider: z.boolean().default(false),
     brouillon: z.boolean().default(false),
   }),
 });
@@ -79,7 +92,9 @@ const nouvelles = defineCollection({
     date: z.coerce.date(),
     date_texte: texte(),
     categorie: z.enum(['nouvelle', 'distinction']),
+    extrait: texte(),
     image: texte(),
+    image_alt: texte(),
     lien: url(),
     a_valider: z.boolean().default(false),
     brouillon: z.boolean().default(false),
@@ -94,6 +109,7 @@ const medias = defineCollection({
     date: z.coerce.date(),
     date_texte: texte(),
     lien: url(),
+    a_valider: z.boolean().default(false),
     brouillon: z.boolean().default(false),
   }),
 });
@@ -106,6 +122,7 @@ const partenaires = defineCollection({
     lien: url(),
     categorie: z.enum(['affiliation', 'financement', 'partenaire']),
     ordre: z.number().default(100),
+    a_valider: z.boolean().default(false),
   }),
 });
 
@@ -127,9 +144,24 @@ const pages = defineCollection({
   loader: glob({ pattern: md, base: './src/content/pages' }),
   schema: z.object({
     titre: z.string(),
+    etiquette: texte(),
     accroche: texte(),
     image: texte(),
+    image_alt: texte(),
+    a_valider: z.boolean().default(false),
     axes: z.array(z.object({ titre: z.string(), texte: z.string() })).default([]),
+    // Accueil : les portes d'entrée par public (patients, étudiants, médias).
+    portes: z
+      .array(
+        z.object({
+          etiquette: z.string(),
+          titre: z.string(),
+          texte: z.string(),
+          bouton_texte: z.string(),
+          bouton_lien: z.string(),
+        }),
+      )
+      .default([]),
     sections: z
       .array(
         z.object({

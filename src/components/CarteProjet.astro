@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { t, lien } from '../i18n/ui';
+import { slug, periode, enCours, titreCourt } from '../lib/contenu';
+import AValider from './AValider.astro';
+import Filigrane from './Filigrane.astro';
+
+interface Props {
+  lang: string;
+  p: CollectionEntry<'projets'>;
+  niveau?: 'h2' | 'h3';
+}
+const { lang, p, niveau = 'h3' } = Astro.props;
+const d = p.data;
+const Titre = niveau;
+---
+
+<article class="carte-projet">
+  {
+    d.image ? (
+      <img class="carte-projet__image photo" src={d.image} alt={d.image_alt ?? ''} loading="lazy" width="1600" height="1067" />
+    ) : (
+      <div class="carte-projet__image carte-projet__vide">
+        {d.logo ? <img src={d.logo} alt="" loading="lazy" /> : <Filigrane class="carte-projet__filigrane" />}
+      </div>
+    )
+  }
+  <p class="etiquette carte-projet__etiquette">
+    {enCours(d.fin) ? t(lang, 'projets.statut_en_cours') : t(lang, 'projets.statut_termine')} · {periode(d.debut, d.fin)}
+  </p>
+  <Titre class="carte-projet__titre"><a href={lien(lang, `projets/${slug(p.id)}`)}>{titreCourt(p)}</a></Titre>
+  {d.resume && <p class="carte-projet__resume">{d.resume}<AValider si={d.a_valider} lang={lang} /></p>}
+  <p class="meta carte-projet__financement">{d.financement}</p>
+</article>
+
+<style>
+  .carte-projet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pas-3);
+    position: relative;
+  }
+  .carte-projet__image {
+    aspect-ratio: 3 / 2;
+    margin-bottom: var(--pas-2);
+  }
+  .carte-projet__vide {
+    display: grid;
+    place-items: center;
+    border-radius: var(--rayon);
+    background: var(--c-surface);
+    color: var(--c-filigrane);
+  }
+  .carte-projet__vide img {
+    max-width: 60%;
+    max-height: 40%;
+    object-fit: contain;
+  }
+  .carte-projet__vide :global(.carte-projet__filigrane) {
+    height: 60%;
+  }
+  .carte-projet__etiquette {
+    margin: 0;
+  }
+  .carte-projet__titre {
+    margin: 0;
+    font-family: var(--f-titre);
+    font-weight: 500;
+    font-size: 1.75rem;
+    line-height: 1.15;
+  }
+  .carte-projet__titre a {
+    text-decoration: none;
+  }
+  .carte-projet__titre a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--rayon);
+  }
+  .carte-projet__titre a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+  .carte-projet__titre a:focus-visible {
+    outline: none;
+  }
+  .carte-projet__titre a:focus-visible::after {
+    outline: 3px solid var(--c-focus);
+    outline-offset: 6px;
+  }
+  .carte-projet__resume {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--c-texte-2);
+  }
+  .carte-projet__financement {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+</style>

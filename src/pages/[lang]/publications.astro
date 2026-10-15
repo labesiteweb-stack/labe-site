@@ -1,7 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { LANGUES, t } from '../../i18n/ui';
-import { publiees, surligner, nomsAsurligner } from '../../lib/contenu';
+import { LANGUES, t, lien } from '../../i18n/ui';
+import { publiees, surligner, nomsAsurligner, langueTitre } from '../../lib/contenu';
+import AValider from '../../components/AValider.astro';
+import Icone from '../../components/Icone.astro';
 
 export function getStaticPaths() {
   return LANGUES.map((lang) => ({ params: { lang } }));
@@ -9,252 +11,469 @@ export function getStaticPaths() {
 
 const { lang } = Astro.params;
 const noms = await nomsAsurligner(lang);
-const pubs = await publiees('publications');
+const pubs = (await publiees('publications')).sort(
+  (a, b) => b.data.annee - a.data.annee || a.data.type.localeCompare(b.data.type) || a.data.auteurs.localeCompare(b.data.auteurs),
+);
+const annees = [...new Set(pubs.map((p) => p.data.annee))];
+const types = ['article', 'abrege', 'transfert', 'soumis', 'livre', 'rapport', 'formation'] as const;
+const compte = (type: string) => pubs.filter((p) => p.data.type === type).length;
+const MAX = 10;
 
-const types = ['article', 'soumis', 'transfert', 'abrege', 'livre', 'rapport', 'formation'] as const;
-const sections = types
-  .map((type) => {
-    const liste = pubs
-      .filter((p) => p.data.type === type)
-      .sort((a, b) => b.data.annee - a.data.annee || a.data.auteurs.localeCompare(b.data.auteurs));
-    const annees = [...new Set(liste.map((p) => p.data.annee))];
-    return { type, total: liste.length, annees: annees.map((annee) => ({ annee, items: liste.filter((p) => p.data.annee === annee) })) };
-  })
-  .filter((s) => s.total > 0);
+function auteurs(liste: string) {
+  const tous = liste.split(/,\s*/).filter(Boolean);
+  if (tous.length <= MAX + 1) return { court: surligner(liste, noms), reste: 0, dont: [] as string[], complet: '' };
+  const restants = tous.slice(MAX).join(', ');
+  const dont = [...surligner(restants, noms).matchAll(/class="auteur-[^"]+">([^<]+)</g)].map((m) => m[1]);
+  return { court: surligner(tous.slice(0, MAX).join(', '), noms), reste: tous.length - MAX, dont, complet: surligner(liste, noms) };
+}
+
+const reference = (p: (typeof pubs)[number]) =>
+  [
+    `${p.data.auteurs.replace(/\.$/, '')}. (${p.data.annee}). ${p.data.titre.replace(/\.$/, '')}.`,
+    p.data.source ? ` ${p.data.source}${p.data.details ? `, ${p.data.details}` : ''}.` : '',
+    p.data.lien ? ` ${p.data.lien}` : '',
+  ].join('');
 ---
 
-<Base lang={lang} titre={t(lang, 'publications.titre')} section="publications">
-  <header class="entete-page cadre">
-    <h1>{t(lang, 'publications.titre')}</h1>
-    <p class="chapo">{t(lang, 'publications.intro')}</p>
+<Base lang={lang} titre={t(lang, 'publications.titre')} description={t(lang, 'publications.intro')} section="publications">
+  <header class="cadre entete-page tete">
+    <div>
+      <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+        <ol>
+          <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+          <li aria-current="page">{t(lang, 'publications.titre')}</li>
+        </ol>
+      </nav>
+      <h1>{t(lang, 'publications.titre')}</h1>
+      <p class="chapo">{t(lang, 'publications.intro')}</p>
+    </div>
+    <div class="champ tete__recherche" data-zone-recherche hidden>
+      <label for="recherche">{t(lang, 'publications.recherche')}</label>
+      <div class="recherche">
+        <Icone nom="recherche" taille={18} />
+        <input id="recherche" type="search" placeholder={t(lang, 'publications.recherche.aide')} data-recherche autocomplete="off" />
+      </div>
+    </div>
   </header>
 
-  <div class="cadre outils" data-outils hidden>
-    <label class="outils__recherche">
-      <span class="visuellement-cache">{t(lang, 'publications.recherche')}</span>
-      <input type="search" placeholder={t(lang, 'publications.recherche')} data-recherche />
-    </label>
-    <div class="outils__types ui" role="group" aria-label="Type de publication">
-      <button type="button" aria-pressed="true" data-type="">{t(lang, 'publications.tous')}</button>
-      {
-        sections.map((s) => (
-          <button type="button" aria-pressed="false" data-type={s.type}>
-            {t(lang, `type.${s.type}`)} <span>{s.total}</span>
-          </button>
-        ))
-      }
+  <div class="outils" data-outils>
+    <div class="cadre outils__rang">
+      <div class="filtres" role="group" aria-label="Type de publication" data-types hidden>
+        <button class="filtre" type="button" aria-pressed="true" data-type="">{t(lang, 'publications.tous')} <span>{pubs.length}</span></button>
+        {
+          types
+            .filter((ty) => compte(ty) > 0)
+            .map((ty) => (
+              <button class="filtre" type="button" aria-pressed="false" data-type={ty}>
+                {t(lang, `typec.${ty}`)} <span>{compte(ty)}</span>
+              </button>
+            ))
+        }
+      </div>
+      <nav class="annees" aria-label={t(lang, 'publications.aller')}>
+        <span class="etiquette annees__libelle" aria-hidden="true">{t(lang, 'publications.annee')}</span>
+        <ul>
+          {
+            annees.map((a) => (
+              <li data-lien-annee={a}>
+                <a href={`#annee-${a}`}>{a}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
     </div>
-    <p class="outils__vide" data-vide hidden>{t(lang, 'publications.aucun')}</p>
   </div>
 
+  <p class="cadre vide" data-vide hidden>{t(lang, 'publications.aucun')}</p>
+  <p class="visuellement-cache" aria-live="polite" data-annonce></p>
+
   {
-    sections.map((s) => (
-      <section class="cadre type" data-section={s.type} aria-labelledby={`type-${s.type}`}>
-        <h2 id={`type-${s.type}`}>{t(lang, `type.${s.type}`)}</h2>
-        {s.annees.map((a) => (
-          <div class="annee" data-annee>
-            <h3 class="annee__titre ui">{a.annee}</h3>
-            <ul class="refs">
-              {a.items.map((p) => (
-                <li class="ref" data-ref>
-                  <span class="ref__auteurs" set:html={surligner(p.data.auteurs, noms) + (/[.)]$/.test(p.data.auteurs) ? '' : '.')} />{' '}
-                  <span class="ref__titre">{p.data.titre}.</span>{' '}
-                  {p.data.source && <cite class="ref__source">{p.data.source}</cite>}
-                  {p.data.details && <span class="ref__details">, {p.data.details}</span>}
-                  {p.data.statut && <span class="ref__statut ui">{p.data.statut}</span>}
-                  {p.data.lien && (
-                    <a class="ref__lien ui" href={p.data.lien}>
-                      {t(lang, 'publications.lien')}
-                      <span class="visuellement-cache"> : {p.data.titre}</span>
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
+    annees.map((a) => {
+      const items = pubs.filter((p) => p.data.annee === a);
+      return (
+        <section class="cadre annee" id={`annee-${a}`} data-annee={a} aria-labelledby={`titre-${a}`}>
+          <div class="annee__cote">
+            <h2 id={`titre-${a}`}>{a}</h2>
+            <p class="meta" data-compte>
+              {items.length} {items.length > 1 ? t(lang, 'publications.plusieurs') : t(lang, 'publications.une')}
+            </p>
           </div>
-        ))}
-      </section>
-    ))
+          <ol class="refs">
+            {items.map((p) => {
+              const d = p.data;
+              const au = auteurs(d.auteurs);
+              const langue = langueTitre(d.titre, d.langue);
+              return (
+                <li class="ref" data-ref data-type={d.type}>
+                  <p class="ref__type">
+                    <span class="etiquette">{t(lang, `type1.${d.type}`)}</span>
+                    {d.source && (
+                      <cite class="ref__source">
+                        {d.source}
+                        {d.details && `, ${d.details}`}
+                      </cite>
+                    )}
+                    {d.statut && <span class="pastille pastille--lumiere">{d.statut}</span>}
+                  </p>
+                  <h3 class="ref__titre" lang={langue !== lang ? langue : undefined}>
+                    {d.titre}
+                    <AValider si={d.a_valider} lang={lang} />
+                  </h3>
+                  <p class="ref__auteurs">
+                    {au.reste > 0 ? (
+                      <>
+                        <span data-court set:html={au.court} />
+                        <span data-complet hidden set:html={au.complet} />{' '}
+                        <button class="ref__plus" type="button" aria-expanded="false" data-plus>
+                          et {au.reste} {au.reste > 1 ? t(lang, 'publications.autres') : t(lang, 'publications.autres_un')}
+                          {au.dont.length > 0 && <>, {t(lang, 'publications.dont')} {au.dont.join(', ')}</>}
+                        </button>
+                      </>
+                    ) : (
+                      <span set:html={au.court} />
+                    )}
+                  </p>
+                  <div class="ref__actions">
+                    {d.lien && (
+                      <a class="lien-fleche" href={d.lien} data-externe>
+                        {d.type === 'article' || d.type === 'soumis' ? t(lang, 'publications.lire') : t(lang, 'publications.consulter')}
+                        <span class="visuellement-cache">
+                          {' '}
+                          : {d.titre} {t(lang, 'lien.externe')}
+                        </span>
+                        <Icone nom="externe" taille={15} />
+                      </a>
+                    )}
+                    <details class="ref__citer">
+                      <summary>
+                        {t(lang, 'publications.citer')}
+                        <span class="visuellement-cache"> : {d.titre}</span>
+                        <Icone nom="chevron" taille={14} />
+                      </summary>
+                      <div class="ref__citation">
+                        <p lang={langue !== lang ? langue : undefined} data-citation>
+                          {reference(p)}
+                        </p>
+                        <button class="bouton bouton--contour ref__copier" type="button" data-copier>
+                          <Icone nom="copier" taille={15} />
+                          <span data-texte-copier>{t(lang, 'publications.copier')}</span>
+                        </button>
+                      </div>
+                    </details>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      );
+    })
   }
 </Base>
 
 <script>
-  const outils = document.querySelector<HTMLElement>('[data-outils]');
-  if (outils) {
-    outils.hidden = false;
-    const champ = outils.querySelector<HTMLInputElement>('[data-recherche]')!;
-    const boutons = [...outils.querySelectorAll<HTMLButtonElement>('[data-type]')];
-    const vide = outils.querySelector<HTMLElement>('[data-vide]')!;
-    const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
-    let type = '';
-    const normaliser = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-    const index = new Map([...document.querySelectorAll<HTMLElement>('[data-ref]')].map((li) => [li, normaliser(li.textContent ?? '')]));
+  const lesRefs = [...document.querySelectorAll<HTMLElement>('[data-ref]')];
+  const annees = [...document.querySelectorAll<HTMLElement>('[data-annee]')];
+  const champ = document.querySelector<HTMLInputElement>('[data-recherche]');
+  const types = document.querySelector<HTMLElement>('[data-types]');
+  const vide = document.querySelector<HTMLElement>('[data-vide]')!;
+  const annonce = document.querySelector<HTMLElement>('[data-annonce]')!;
+  const boutons = types ? [...types.querySelectorAll<HTMLButtonElement>('[data-type]')] : [];
+  document.querySelector<HTMLElement>('[data-zone-recherche]')!.hidden = false;
+  if (types) types.hidden = false;
 
-    const filtrer = () => {
-      const q = normaliser(champ.value.trim());
-      let total = 0;
-      for (const section of sections) {
-        let visiblesSection = 0;
-        const bonType = !type || section.dataset.section === type;
-        for (const annee of section.querySelectorAll<HTMLElement>('[data-annee]')) {
-          let visibles = 0;
-          for (const li of annee.querySelectorAll<HTMLElement>('[data-ref]')) {
-            const ok = bonType && (!q || index.get(li)!.includes(q));
-            li.hidden = !ok;
-            if (ok) visibles++;
-          }
-          annee.hidden = visibles === 0;
-          visiblesSection += visibles;
-        }
-        section.hidden = visiblesSection === 0;
-        total += visiblesSection;
+  const normaliser = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const index = new Map(lesRefs.map((li) => [li, normaliser(li.textContent ?? '')]));
+  let type = new URLSearchParams(location.search).get('type') ?? '';
+  if (!boutons.some((b) => b.dataset.type === type)) type = '';
+
+  const filtrer = () => {
+    const q = normaliser(champ?.value.trim() ?? '');
+    let total = 0;
+    for (const section of annees) {
+      let n = 0;
+      for (const li of section.querySelectorAll<HTMLElement>('[data-ref]')) {
+        const ok = (!type || li.dataset.type === type) && (!q || index.get(li)!.includes(q));
+        li.hidden = !ok;
+        if (ok) n++;
       }
-      vide.hidden = total > 0;
-    };
-
-    champ.addEventListener('input', filtrer);
-    for (const b of boutons) {
-      b.addEventListener('click', () => {
-        type = b.dataset.type ?? '';
-        boutons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-        filtrer();
-      });
+      section.hidden = n === 0;
+      const compte = section.querySelector('[data-compte]');
+      if (compte) compte.textContent = `${n} publication${n > 1 ? 's' : ''}`;
+      const lienAnnee = document.querySelector<HTMLElement>(`[data-lien-annee="${section.dataset.annee}"]`);
+      if (lienAnnee) lienAnnee.hidden = n === 0;
+      total += n;
     }
+    vide.hidden = total > 0;
+    annonce.textContent = `${total} publication${total > 1 ? 's' : ''}`;
+    boutons.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.type ?? '') === type)));
+  };
+
+  champ?.addEventListener('input', filtrer);
+  boutons.forEach((b) =>
+    b.addEventListener('click', () => {
+      type = b.dataset.type ?? '';
+      const url = new URL(location.href);
+      if (type) url.searchParams.set('type', type);
+      else url.searchParams.delete('type');
+      history.replaceState(null, '', url);
+      filtrer();
+    }),
+  );
+  filtrer();
+
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-plus]')) {
+    b.addEventListener('click', () => {
+      const p = b.closest('p')!;
+      p.querySelector<HTMLElement>('[data-court]')!.hidden = true;
+      p.querySelector<HTMLElement>('[data-complet]')!.hidden = false;
+      b.hidden = true;
+    });
+  }
+
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copier]')) {
+    b.addEventListener('click', async () => {
+      const texte = b.parentElement!.querySelector('[data-citation]')!.textContent!.trim();
+      const etiquette = b.querySelector('[data-texte-copier]')!;
+      const avant = etiquette.textContent;
+      try {
+        await navigator.clipboard.writeText(texte);
+        etiquette.textContent = 'Référence copiée';
+        setTimeout(() => (etiquette.textContent = avant), 2000);
+      } catch (e) {
+        const sel = window.getSelection();
+        const r = document.createRange();
+        r.selectNodeContents(b.parentElement!.querySelector('[data-citation]')!);
+        sel?.removeAllRanges();
+        sel?.addRange(r);
+      }
+    });
   }
 </script>
 
 <style>
+  .tete {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-5);
+    align-items: end;
+  }
+  .tete > div:first-child {
+    grid-column: span 7;
+  }
+  .tete__recherche {
+    grid-column: 9 / span 4;
+  }
+  .recherche {
+    position: relative;
+  }
+  .recherche :global(svg) {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--c-texte-2);
+  }
+  .recherche input {
+    padding-left: 2.75rem;
+  }
   .outils {
     position: sticky;
     top: 0;
-    z-index: 2;
-    background: var(--blanc);
-    padding-block: var(--pas-4);
-    border-bottom: 1px solid var(--trait);
+    z-index: 5;
+    background: var(--c-fond);
+    border-block: 1px solid var(--c-trait);
+  }
+  .outils__rang {
     display: grid;
     gap: var(--pas-3);
+    padding-block: var(--pas-3);
   }
-  .outils__recherche input {
-    width: 100%;
-    max-width: 34rem;
-    font: inherit;
-    font-size: 1.05rem;
-    padding: 0.7rem 1rem;
-    border: 1px solid var(--trait);
-    border-radius: 999px;
-    background: var(--brume);
-    color: var(--encre);
-  }
-  .outils__recherche input:focus-visible {
-    background: var(--blanc);
-  }
-  .outils__types {
+  .annees {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--pas-2);
+    align-items: center;
+    gap: var(--pas-3);
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
-  .outils__types button {
-    font: inherit;
-    font-size: 0.92rem;
-    padding: 0.4rem 0.85rem;
-    border-radius: 999px;
-    border: 1px solid var(--trait);
-    background: var(--blanc);
-    color: var(--sapin);
-    cursor: pointer;
-  }
-  .outils__types button span {
-    color: var(--gris-mousse);
-    margin-left: 0.2em;
-  }
-  .outils__types button[aria-pressed='true'] {
-    background: var(--sapin);
-    border-color: var(--sapin);
-    color: var(--blanc);
-  }
-  .outils__types button[aria-pressed='true'] span {
-    color: var(--lichen);
-  }
-  .outils__vide {
+  .annees__libelle {
     margin: 0;
-    color: var(--gris-mousse);
   }
-
-  .type {
-    padding-top: var(--pas-7);
+  .annees ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: var(--pas-1);
+  }
+  .annees a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.25rem;
+    min-height: 2.5rem;
+    border-radius: var(--rayon-petit);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .annees a:hover {
+    background: var(--c-surface);
+    text-decoration: underline;
+  }
+  .vide {
+    padding-top: var(--pas-6);
   }
   .annee {
     display: grid;
-    grid-template-columns: 5rem minmax(0, 1fr);
-    gap: var(--pas-4);
-    border-top: 1px solid var(--trait);
-    padding-top: var(--pas-4);
-    margin-top: var(--pas-4);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    padding-top: var(--pas-7);
+    scroll-margin-top: 10.5rem;
   }
-  .annee__titre {
-    font-size: 1.05rem;
-    color: var(--epinette);
-    font-weight: 650;
+  .annee__cote {
+    grid-column: span 2;
+  }
+  .annee__cote h2 {
+    margin: 0 0 var(--pas-2);
+    font-size: 2.75rem;
+    line-height: 1;
     position: sticky;
-    top: 8.5rem;
-    align-self: start;
+    top: 10.5rem;
   }
   .refs {
+    grid-column: 3 / span 10;
     list-style: none;
     margin: 0;
     padding: 0;
   }
   .ref {
-    font-size: 1.02rem;
-    line-height: 1.55;
-    max-width: 52rem;
-    padding-bottom: var(--pas-4);
+    padding-block: var(--pas-5);
+    border-top: 1px solid var(--c-trait);
   }
-  .ref + .ref {
-    padding-top: var(--pas-1);
+  .ref__type {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pas-1) var(--pas-3);
+    margin: 0 0 var(--pas-2);
   }
-  .ref__titre {
-    color: var(--encre);
-  }
-  .ref__auteurs {
-    color: var(--gris-mousse);
+  .ref__type .etiquette {
+    display: inline;
+    margin: 0;
   }
   .ref__source {
+    font-size: 0.9375rem;
     font-style: italic;
+    color: var(--c-texte-2);
   }
-  .ref__statut {
-    display: inline-block;
-    margin-left: var(--pas-2);
-    font-size: 0.8rem;
-    padding: 0.05rem 0.5rem;
-    border-radius: 999px;
-    background: var(--lichen);
-    color: var(--sapin);
-    vertical-align: 0.1em;
+  .ref__titre {
+    font-size: 1.2rem;
+    line-height: 1.4;
+    margin-bottom: var(--pas-2);
+    max-width: 52rem;
   }
-  .ref__lien {
-    margin-left: var(--pas-2);
-    font-size: 0.88rem;
+  .ref__auteurs {
+    margin: 0 0 var(--pas-2);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--c-texte-2);
+    max-width: 52rem;
+  }
+  .ref__plus {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--c-action);
+    font: inherit;
     font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
   }
-  @media (max-width: 40rem) {
-    .outils {
-      position: static;
-    }
-    .outils__types {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: var(--pas-2);
-      scrollbar-width: thin;
-    }
-    .outils__types button {
-      flex: none;
+  .ref__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 var(--pas-6);
+  }
+  .ref__actions .lien-fleche {
+    font-size: 0.9375rem;
+  }
+  .ref__citer {
+    flex-basis: 100%;
+  }
+  .ref__actions .lien-fleche + .ref__citer {
+    flex-basis: auto;
+  }
+  .ref__citer[open] {
+    flex-basis: 100%;
+  }
+  .ref__citer summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--pas-2);
+    min-height: 2.75rem;
+    color: var(--c-action);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .ref__citer summary::-webkit-details-marker {
+    display: none;
+  }
+  .ref__citer[open] summary :global(svg) {
+    transform: rotate(180deg);
+  }
+  .ref__citation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--pas-4);
+    margin-top: var(--pas-2);
+    padding: var(--pas-5);
+    border-radius: var(--rayon);
+    background: var(--c-surface);
+  }
+  .ref__citation p {
+    flex: 1 1 30rem;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+  .ref__copier {
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    background: var(--c-fond);
+  }
+  @media (max-width: 54em) {
+    .tete > div:first-child,
+    .tete__recherche {
+      grid-column: 1 / -1;
     }
     .annee {
-      grid-template-columns: 1fr;
-      gap: var(--pas-2);
+      scroll-margin-top: 13rem;
     }
-    .annee__titre {
+    .annee__cote,
+    .refs {
+      grid-column: 1 / -1;
+    }
+    .annee__cote {
+      display: flex;
+      align-items: baseline;
+      gap: var(--pas-4);
+      margin-bottom: var(--pas-3);
+    }
+    .annee__cote h2 {
+      position: static;
+      font-size: 2.25rem;
+    }
+    .outils {
       position: static;
     }
   }

@@ -64,3 +64,49 @@ export async function nomsAsurligner(lang: string): Promise<Surlignage> {
 
 /** Paragraphes d'un champ texte simple (lignes vides = nouveau paragraphe). */
 export const paragraphes = (texte: string) => texte.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+
+/**
+ * Version d'aperçu : vraie partout sauf sur le site de production de Vercel.
+ * Elle affiche les étiquettes « À valider » et le sélecteur de palettes, jamais sur le site en ligne.
+ */
+export const APERCU = process.env.VERCEL_ENV !== 'production';
+
+/** Projets phares : cochés dans le CMS, triés par ordre, cinq au plus. */
+export async function projetsPhares(lang: string) {
+  return (await parLangue('projets', lang))
+    .filter((p) => p.data.phare)
+    .sort((a, b) => a.data.ordre - b.data.ordre || b.data.debut - a.data.debut)
+    .slice(0, 5);
+}
+
+/** Titre à afficher dans les menus et les cartes : le titre court s'il existe. */
+export const titreCourt = (p: { data: { titre: string; titre_court?: string } }) => p.data.titre_court ?? p.data.titre;
+
+/** Une page de projet existe quand il y a une description ou des noms à montrer. */
+export const projetAUnePage = (p: { body?: string; data: { co_chercheurs?: string; resume?: string } }) =>
+  Boolean(p.body?.trim()) || Boolean(p.data.co_chercheurs) || Boolean(p.data.resume);
+
+/** Initiales pour le monogramme d'un portrait absent (« Isabelle Doré, Ph. D. » donne « ID »). */
+export function initiales(nom: string) {
+  const mots = nom.replace(/,.*$/, '').split(/\s+/).filter((m) => /^\p{Lu}/u.test(m));
+  return ((mots[0]?.[0] ?? '') + (mots.length > 1 ? mots[mots.length - 1][0] : '')).toUpperCase();
+}
+
+const MOTS_FR = /\b(le|la|les|des|du|une|un|et|pour|chez|dans|sur|avec|aux|au|santé|activité|étude|programme|jeunes|entre|d'|l')\b|[éèêàùçôî]/i;
+
+/** Langue d'un titre de publication : le champ du CMS, sinon une détection simple (accents et mots courants). */
+export const langueTitre = (titre: string, langue?: 'fr' | 'en') => langue ?? (MOTS_FR.test(titre) ? 'fr' : 'en');
+
+/** Extrait d'une nouvelle : le champ du CMS, sinon le début du texte, coupé proprement. */
+export function extrait(texte: string | undefined, max = 180) {
+  const brut = (texte ?? '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*_#>`]/g, '').replace(/\s+/g, ' ').trim();
+  if (brut.length <= max) return brut;
+  const coupe = brut.slice(0, max);
+  return coupe.slice(0, coupe.lastIndexOf(' ')).replace(/[,;:.]$/, '') + '…';
+}
+
+/** Texte saisi dans le CMS avec des *astérisques* : le mot entouré passe en italique. */
+export const emphase = (s: string) => echapper(s).replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+/** Retire les astérisques d'emphase (pour les balises title et les attributs). */
+export const sansEmphase = (s: string) => s.replace(/\*/g, '');

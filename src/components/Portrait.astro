@@ -1,0 +1,52 @@
+---
+/* Portrait carré. Sans photo, un monogramme sur fond clair prend la place, jamais une image vide. */
+import { initiales } from '../lib/contenu';
+
+interface Props {
+  nom: string;
+  photo?: string;
+  cadrage?: 'haut' | 'centre' | 'bas';
+  class?: string;
+  eager?: boolean;
+}
+const { nom, photo, cadrage = 'haut', class: classe, eager = false } = Astro.props;
+const position = { haut: '50% 15%', centre: '50% 50%', bas: '50% 85%' }[cadrage];
+const propre = nom.replace(/,.*$/, '');
+---
+
+{
+  photo ? (
+    <img
+      class:list={['portrait', classe]}
+      src={photo}
+      alt={`Portrait de ${propre}`}
+      style={`object-position: ${position}`}
+      loading={eager ? 'eager' : 'lazy'}
+      width="800"
+      height="800"
+    />
+  ) : (
+    <div class:list={['portrait', 'portrait--monogramme', classe]} role="img" aria-label={`${propre} (photo à venir)`}>
+      <span aria-hidden="true">{initiales(nom)}</span>
+    </div>
+  )
+}
+
+<style>
+  .portrait {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--rayon);
+  }
+  .portrait--monogramme {
+    display: grid;
+    place-items: center;
+    background: var(--c-surface);
+    color: var(--c-identite);
+    font-family: var(--f-titre);
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    letter-spacing: 0.02em;
+  }
+</style>

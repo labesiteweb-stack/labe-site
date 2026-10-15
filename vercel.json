@@ -1,4 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "redirects": [{ "source": "/", "destination": "/fr/", "permanent": false }]
+  "redirects": [
+    { "source": "/", "destination": "/fr/", "permanent": false },
+    { "source": "/:lang(fr|en)/recherche", "destination": "/:lang/projets/", "permanent": true },
+    { "source": "/:lang(fr|en)/recherche/:projet*", "destination": "/:lang/projets/:projet*", "permanent": true },
+    { "source": "/:lang(fr|en)/actualites", "destination": "/:lang/nouvelles/", "permanent": true },
+    { "source": "/:lang(fr|en)/actualites/", "destination": "/:lang/nouvelles/", "permanent": true },
+    { "source": "/:lang(fr|en)/galerie", "destination": "/:lang/vie-du-labo/", "permanent": true },
+    { "source": "/:lang(fr|en)/galerie/:album*", "destination": "/:lang/vie-du-labo/:album*", "permanent": true }
+  ]
 }

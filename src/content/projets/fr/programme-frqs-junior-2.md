@@ -6,6 +6,12 @@ financement: Fonds de recherche du Québec – Santé (FRQS), programme Chercheu
 role: principale
 lien: https://doi.org/10.69777/367051
 a_valider: true
+phare: true
+ordre: 5
+titre_court: Santé mentale en contexte réel
+resume: "Le programme qui encadre les travaux du LABE de 2025 à 2029 : produire des données probantes et intervenir efficacement en contextes réels."
+image: /images/projets/programme-frqs.webp
+image_alt: Réunion de l'équipe autour d'une grande table
 ---
 
 Programme de recherche qui encadre l'ensemble des travaux du LABE pour la période 2025-2029. Il vise à produire des données probantes sur les liens entre l'activité physique, la santé mentale et le bien-être, et à les traduire en interventions efficaces dans des milieux réels.

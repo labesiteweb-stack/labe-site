@@ -1,258 +1,469 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { render } from 'astro:content';
-import { LANGUES, t } from '../../i18n/ui';
-import { parLangue } from '../../lib/contenu';
+import { LANGUES, t, lien } from '../../i18n/ui';
+import { parLangue, APERCU } from '../../lib/contenu';
+import Portrait from '../../components/Portrait.astro';
+import AValider from '../../components/AValider.astro';
+import Icone from '../../components/Icone.astro';
 
 export function getStaticPaths() {
   return LANGUES.map((lang) => ({ params: { lang } }));
 }
 
 const { lang } = Astro.params;
-const tous = (await parLangue('equipe', lang)).sort((a, b) => a.data.ordre - b.data.ordre || a.data.nom.localeCompare(b.data.nom));
-const direction = tous.find((m) => m.data.role === 'direction');
-const { Content: Bio } = direction ? await render(direction) : { Content: null };
+const tous = await parLangue('equipe', lang);
+const ordreRole = ['direction', 'personnel', 'postdoc', 'doctorat', 'maitrise', 'stagiaire'] as const;
+const trier = (a: (typeof tous)[number], b: (typeof tous)[number]) =>
+  ordreRole.indexOf(a.data.role) - ordreRole.indexOf(b.data.role) || a.data.ordre - b.data.ordre || a.data.nom.localeCompare(b.data.nom);
 
-const roles = ['personnel', 'postdoc', 'doctorat', 'maitrise', 'stagiaire'] as const;
-const actuels = roles
-  .map((role) => ({ role, membres: tous.filter((m) => m.data.statut === 'actuel' && m.data.role === role) }))
-  .filter((g) => g.membres.length);
-const anciens = tous.filter((m) => m.data.statut === 'ancien');
-
-const initiales = (nom: string) =>
-  nom
-    .split(',')[0]
-    .split(/[\s-]+/)
-    .filter((m) => /^\p{Lu}/u.test(m))
-    .slice(0, 2)
-    .map((m) => m[0])
-    .join('');
+const direction = tous.find((m) => m.data.role === 'direction' && m.data.statut === 'actuel');
+const actuels = tous.filter((m) => m.data.statut === 'actuel' && m.data.role !== 'direction').sort(trier);
+const anciens = tous
+  .filter((m) => m.data.statut === 'ancien')
+  .sort((a, b) => (b.data.annees ?? '').slice(-4).localeCompare((a.data.annees ?? '').slice(-4)) || trier(a, b));
+const roles = ordreRole.filter((r) => r !== 'direction' && actuels.some((m) => m.data.role === r));
+const avecBio = await Promise.all(actuels.map(async (m) => ({ m, Bio: m.body?.trim() ? (await render(m)).Content : null })));
+const premierParagraphe = direction?.body?.split(/\n\s*\n/)[0]?.trim();
+const portraitsAassocier = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|et|chez)\b/i.test(s) ? 'en' : undefined);
 ---
 
-<Base lang={lang} titre={t(lang, 'equipe.titre')} section="equipe">
-  <header class="entete-page cadre">
+<Base lang={lang} titre={t(lang, 'equipe.titre')} description={t(lang, 'equipe.intro')} section="equipe">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li aria-current="page">{t(lang, 'equipe.titre')}</li>
+      </ol>
+    </nav>
     <h1>{t(lang, 'equipe.titre')}</h1>
     <p class="chapo">{t(lang, 'equipe.intro')}</p>
+    <nav class="ancres" aria-label="Dans cette page">
+      <a class="filtre" href="#actuels">{t(lang, 'nav.equipe.actuels')}</a>
+      <a class="filtre" href="#diplomes">{t(lang, 'nav.equipe.diplomes')}</a>
+      <a class="filtre" href="#etudier">{t(lang, 'nav.equipe.etudier')}</a>
+    </nav>
   </header>
 
   {
     direction && (
-      <section class="cadre directrice" aria-labelledby="direction">
-        <div class="directrice__photo">
-          {direction.data.photo ? (
-            <img src={direction.data.photo} alt={`Portrait de ${direction.data.nom.split(',')[0]}`} width="640" height="800" />
-          ) : (
-            <span class="monogramme monogramme--grand" aria-hidden="true">{initiales(direction.data.nom)}</span>
-          )}
+      <section class="cadre direction" aria-labelledby="direction">
+        <div class="direction__image">
+          <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} eager />
+          <AValider si={direction.data.a_valider} lang={lang} note="Portrait présumé" />
         </div>
-        <div>
-          <h2 id="direction" class="visuellement-cache">{t(lang, 'equipe.direction')}</h2>
-          <p class="directrice__titre ui">{direction.data.titre}</p>
-          <h3 class="directrice__nom">{direction.data.nom}</h3>
-          {direction.data.programme && <p class="directrice__poste">{direction.data.programme}</p>}
-          <div class="prose">{Bio && <Bio />}</div>
+        <div class="direction__texte">
+          <p class="etiquette">{t(lang, 'equipe.direction')}</p>
+          <h2 id="direction">{direction.data.nom}</h2>
+          {direction.data.programme && <p class="meta">{direction.data.programme}</p>}
+          {premierParagraphe && <p class="direction__bio">{premierParagraphe}</p>}
+          <a class="lien-fleche" href={lien(lang, 'le-labo/#direction')}>
+            {t(lang, 'equipe.bio')}
+            <Icone nom="fleche" />
+          </a>
         </div>
       </section>
     )
   }
 
-  {
-    actuels.map((g) => (
-      <section class="cadre groupe" aria-labelledby={`role-${g.role}`}>
-        <h2 id={`role-${g.role}`}>{t(lang, `equipe.${g.role}`)}</h2>
-        <ul class="membres">
-          {g.membres.map((m) => (
-            <li class="membre">
-              {m.data.photo ? (
-                <img class="membre__photo" src={m.data.photo} alt="" width="640" height="800" loading="lazy" />
-              ) : (
-                <span class="membre__photo monogramme" aria-hidden="true">
-                  {initiales(m.data.nom)}
-                </span>
-              )}
-              <h3 class="membre__nom">{m.data.nom}</h3>
-              <p class="membre__titre ui">
-                {m.data.titre}
-                {m.data.annees && <span>, {m.data.annees}</span>}
-              </p>
-              {m.data.programme && <p class="membre__detail">{m.data.programme}</p>}
-              {m.data.codirection && <p class="membre__detail">{m.data.codirection}</p>}
-              {m.data.sujet && (
-                <p class="membre__sujet">
-                  <span class="visuellement-cache">{t(lang, 'equipe.sujet')} : </span>
-                  {m.data.sujet}
+  <section class="cadre actuels" id="actuels" aria-labelledby="actuels-titre">
+    <div class="tete-section actuels__tete">
+      <h2 id="actuels-titre">{t(lang, 'equipe.actuels')}</h2>
+      <div class="filtres" role="group" aria-label="Filtrer par rôle" data-filtres hidden>
+        <button class="filtre" type="button" aria-pressed="true" data-role="">{t(lang, 'equipe.tous')} <span>{actuels.length}</span></button>
+        {
+          roles.map((r) => (
+            <button class="filtre" type="button" aria-pressed="false" data-role={r}>
+              {t(lang, `equipe.${r}`)} <span>{actuels.filter((m) => m.data.role === r).length}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <ul class="membres">
+      {
+        avecBio.map(({ m, Bio }) => {
+          const d = m.data;
+          const aFiche = Boolean(d.programme || d.annees || d.codirection || d.distinctions.length || Bio || (d.sujet && d.sujet.length > 110));
+          return (
+            <li class="membre" data-role={d.role}>
+              <Portrait nom={d.nom} photo={d.photo} cadrage={d.cadrage} />
+              <h3 class="membre__nom">
+                {d.nom}
+                <AValider si={d.a_valider} lang={lang} />
+              </h3>
+              <p class="membre__titre">{d.titre}</p>
+              {d.sujet && (
+                <p class="membre__sujet" lang={sujetLangue(d.sujet)}>
+                  {d.sujet}
                 </p>
               )}
-              {m.data.distinctions.length > 0 && (
-                <details class="membre__distinctions">
-                  <summary class="ui">{t(lang, 'equipe.distinctions')}</summary>
-                  <ul>
-                    {m.data.distinctions.map((d) => (
-                      <li>{d}</li>
-                    ))}
-                  </ul>
+              {aFiche && (
+                <details class="membre__fiche">
+                  <summary>
+                    {t(lang, 'equipe.fiche')}
+                    <span class="visuellement-cache"> : {d.nom}</span>
+                    <Icone nom="chevron" taille={14} />
+                  </summary>
+                  <dl>
+                    {d.annees && (
+                      <div>
+                        <dt>{t(lang, 'equipe.au_labe')}</dt>
+                        <dd>{d.annees}</dd>
+                      </div>
+                    )}
+                    {d.programme && (
+                      <div>
+                        <dt>{t(lang, 'equipe.programme')}</dt>
+                        <dd>{d.programme}</dd>
+                      </div>
+                    )}
+                    {d.codirection && (
+                      <div>
+                        <dt>{t(lang, 'equipe.codirection')}</dt>
+                        <dd>{d.codirection}</dd>
+                      </div>
+                    )}
+                    {d.sujet && (
+                      <div>
+                        <dt>{t(lang, 'equipe.sujet')}</dt>
+                        <dd lang={sujetLangue(d.sujet)}>{d.sujet}</dd>
+                      </div>
+                    )}
+                    {d.distinctions.length > 0 && (
+                      <div>
+                        <dt>{t(lang, 'equipe.distinctions')}</dt>
+                        <dd>
+                          <ul>
+                            {d.distinctions.map((x) => (
+                              <li>{x}</li>
+                            ))}
+                          </ul>
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                  {Bio && (
+                    <div class="membre__bio">
+                      <Bio />
+                    </div>
+                  )}
                 </details>
               )}
             </li>
-          ))}
-        </ul>
-      </section>
-    ))
-  }
+          );
+        })
+      }
+    </ul>
+  </section>
 
   {
-    anciens.length > 0 && (
-      <section class="cadre groupe" aria-labelledby="anciens">
-        <h2 id="anciens">{t(lang, 'equipe.anciens')}</h2>
-        <ul class="anciens">
-          {anciens.map((m) => (
-            <li>
-              <span class="anciens__nom">{m.data.nom}</span>
-              <span class="anciens__info ui">
-                {m.data.titre}
-                {m.data.annees && `, ${m.data.annees}`}
-              </span>
-              {m.data.sujet && <span class="anciens__sujet">{m.data.sujet}</span>}
-            </li>
-          ))}
-        </ul>
+    APERCU && (
+      <section class="cadre aassocier" aria-labelledby="aassocier">
+        <div class="aassocier__boite">
+          <h2 id="aassocier">
+            Portraits de la séance de 2025 à associer <span class="a-valider">{t(lang, 'apercu.a_valider')}</span>
+          </h2>
+          <p>
+            Visible seulement sur la version d'aperçu. Pour chaque lettre, indiquer le nom de la personne : le portrait remplacera alors son
+            monogramme.
+          </p>
+          <ul>
+            {portraitsAassocier.map((x) => (
+              <li>
+                <img src={`/images/equipe/portrait-${x}.webp`} alt={`Portrait ${x.toUpperCase()}, nom à associer`} loading="lazy" />
+                <span>Portrait {x.toUpperCase()}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     )
   }
+
+  <section class="section cadre" id="diplomes" aria-labelledby="diplomes-titre">
+    <div class="tete-section">
+      <h2 id="diplomes-titre">{t(lang, 'equipe.anciens')}</h2>
+      <p class="meta">{t(lang, 'equipe.anciens.intro')}</p>
+    </div>
+    <div class="tableau">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{t(lang, 'equipe.nom')}</th>
+            <th scope="col">{t(lang, 'equipe.formation')}</th>
+            <th scope="col">{t(lang, 'equipe.annees')}</th>
+            <th scope="col">{t(lang, 'equipe.sujet')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            anciens.map((m) => (
+              <tr>
+                <th scope="row">
+                  {m.data.nom}
+                  <AValider si={m.data.a_valider} lang={lang} />
+                </th>
+                <td>{m.data.titre}</td>
+                <td>{m.data.annees?.replace(/\s*–\s*/, '–')}</td>
+                <td lang={sujetLangue(m.data.sujet)}>{m.data.sujet}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cadre" id="etudier" aria-labelledby="etudier-titre">
+    <div class="etudier">
+      <div>
+        <h2 id="etudier-titre">{t(lang, 'equipe.etudier')}</h2>
+        <p>{t(lang, 'equipe.etudier.texte')}</p>
+      </div>
+      <a class="bouton" href="mailto:isabelle.dore@umontreal.ca">{t(lang, 'equipe.etudier.bouton')}</a>
+    </div>
+  </section>
 </Base>
 
-<style>
-  .directrice {
-    display: grid;
-    grid-template-columns: minmax(12rem, 22rem) minmax(0, 1fr);
-    gap: var(--pas-7);
-    align-items: start;
-    padding-block: var(--pas-5) var(--pas-7);
+<script>
+  const zone = document.querySelector<HTMLElement>('[data-filtres]');
+  if (zone) {
+    zone.hidden = false;
+    const boutons = [...zone.querySelectorAll<HTMLButtonElement>('[data-role]')];
+    const membres = [...document.querySelectorAll<HTMLElement>('.membre')];
+    boutons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const role = b.dataset.role ?? '';
+        boutons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        membres.forEach((m) => (m.hidden = Boolean(role) && m.dataset.role !== role));
+      }),
+    );
   }
-  .directrice__photo img,
-  .monogramme--grand {
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-  }
-  .directrice__titre {
-    color: var(--epinette);
-    font-weight: 600;
-    margin-bottom: var(--pas-2);
-  }
-  .directrice__nom {
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
-    font-stretch: 112%;
-    margin-bottom: var(--pas-3);
-  }
-  .directrice__poste {
-    color: var(--gris-mousse);
-    font-size: 1.05rem;
-    margin-bottom: var(--pas-5);
-  }
+</script>
 
-  .groupe {
+<style>
+  .ancres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-2);
+    margin-top: var(--pas-5);
+  }
+  .ancres .filtre {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .direction {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--pas-5);
+    row-gap: var(--pas-5);
+    align-items: center;
+    padding-block: var(--pas-5) clamp(3.5rem, 8vw, 5.5rem);
+  }
+  .direction__image {
+    grid-column: span 4;
+  }
+  .direction__texte {
+    grid-column: 6 / span 7;
+  }
+  .direction__bio {
+    font-size: 1.125rem;
+    margin-block: var(--pas-4);
+  }
+  .actuels {
+    padding-bottom: clamp(3.5rem, 8vw, 5.5rem);
+  }
+  .actuels__tete {
+    border-top: 1px solid var(--c-trait);
     padding-top: var(--pas-7);
   }
   .membres {
     list-style: none;
-    margin: var(--pas-5) 0 0;
+    margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-    gap: var(--pas-7) var(--pas-6);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--pas-7) var(--pas-5);
+    align-items: start;
   }
-  .membre__photo {
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
+  .membre :global(.portrait) {
     margin-bottom: var(--pas-4);
   }
-  .monogramme {
-    display: grid;
-    place-items: center;
-    background: var(--lichen);
-    color: var(--epinette);
-    font-family: var(--titre);
-    font-weight: 600;
-    font-stretch: 120%;
-    font-size: 2.6rem;
-    letter-spacing: 0.02em;
-  }
-  .monogramme--grand {
-    font-size: 4.5rem;
-  }
   .membre__nom {
+    font-size: 1.15rem;
     margin-bottom: var(--pas-1);
   }
   .membre__titre {
-    font-size: 0.95rem;
-    color: var(--epinette);
+    margin: 0 0 var(--pas-2);
+    font-size: 0.9375rem;
     font-weight: 600;
-    margin-bottom: var(--pas-2);
-  }
-  .membre__titre span {
-    font-weight: 400;
-    color: var(--gris-mousse);
-  }
-  .membre__detail {
-    font-size: 0.98rem;
-    color: var(--gris-mousse);
-    margin-bottom: var(--pas-2);
-    line-height: 1.45;
+    color: var(--c-identite);
   }
   .membre__sujet {
-    font-style: italic;
-    font-size: 1rem;
-    line-height: 1.45;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--c-texte-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-  .membre__distinctions summary {
-    cursor: pointer;
-    font-size: 0.95rem;
-    color: var(--sapin);
+  .membre__fiche {
+    margin-top: var(--pas-2);
+  }
+  .membre__fiche summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--pas-2);
+    min-height: 2.75rem;
+    color: var(--c-action);
+    font-size: 0.9375rem;
     font-weight: 600;
+    cursor: pointer;
+    list-style: none;
   }
-  .membre__distinctions ul {
+  .membre__fiche summary::-webkit-details-marker {
+    display: none;
+  }
+  .membre__fiche[open] summary :global(svg) {
+    transform: rotate(180deg);
+  }
+  .membre__fiche dl {
     margin: var(--pas-2) 0 0;
-    padding-left: 1.1em;
-    font-size: 0.98rem;
-    color: var(--gris-mousse);
+    padding: var(--pas-4);
+    border-radius: var(--rayon);
+    background: var(--c-surface);
+    font-size: 0.9375rem;
+    line-height: 1.5;
   }
-
-  .anciens {
+  .membre__fiche dl > div + div {
+    margin-top: var(--pas-3);
+  }
+  .membre__fiche dt {
+    font-weight: 600;
+    color: var(--c-titre);
+  }
+  .membre__fiche dd {
+    margin: 0;
+    color: var(--c-texte-2);
+  }
+  .membre__fiche dd ul {
+    margin: 0;
+    padding-left: 1.1em;
+  }
+  .membre__bio {
+    margin-top: var(--pas-3);
+    font-size: 0.9375rem;
+  }
+  .aassocier__boite {
+    padding: var(--pas-6);
+    border: 2px dashed #8a5a00;
+    border-radius: var(--rayon);
+    background: #fffaf0;
+  }
+  .aassocier h2 {
+    font-size: 1.6rem;
+  }
+  .aassocier ul {
     list-style: none;
     margin: var(--pas-5) 0 0;
     padding: 0;
-    columns: 2 22rem;
-    column-gap: var(--pas-8);
-  }
-  .anciens li {
-    break-inside: avoid;
     display: grid;
-    gap: var(--pas-1);
-    padding-block: var(--pas-4);
-    border-top: 1px solid var(--trait);
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: var(--pas-3);
   }
-  .anciens__nom {
-    font-family: var(--titre);
+  .aassocier img {
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: 50% 15%;
+    border-radius: var(--rayon-petit);
+  }
+  .aassocier span {
+    display: block;
+    margin-top: var(--pas-1);
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+  .tableau {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    min-width: 44rem;
+    border-collapse: collapse;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  thead th {
+    text-align: left;
+    padding: var(--pas-3) var(--pas-4) var(--pas-3) 0;
+    border-bottom: 2px solid var(--c-titre);
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--sapin);
+    font-stretch: 115%;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-titre);
   }
-  .anciens__info {
-    font-size: 0.92rem;
-    color: var(--gris-mousse);
+  tbody th,
+  tbody td {
+    text-align: left;
+    vertical-align: top;
+    padding: var(--pas-4) var(--pas-4) var(--pas-4) 0;
+    border-bottom: 1px solid var(--c-trait);
   }
-  .anciens__sujet {
-    font-style: italic;
-    font-size: 0.98rem;
-    line-height: 1.45;
+  tbody th {
+    font-weight: 600;
+    color: var(--c-titre);
+    width: 24%;
   }
-  @media (max-width: 48rem) {
-    .directrice {
-      grid-template-columns: 1fr;
+  tbody td {
+    color: var(--c-texte-2);
+  }
+  tbody td:nth-child(3) {
+    white-space: nowrap;
+  }
+  .etudier {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pas-5) var(--pas-7);
+    padding: clamp(1.75rem, 5vw, 3.5rem);
+    border-radius: var(--rayon);
+    background: var(--c-surface-2);
+  }
+  .etudier > div {
+    flex: 1 1 32rem;
+  }
+  .etudier p {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+  @media (max-width: 64em) {
+    .membres {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .directrice__photo {
-      max-width: 18rem;
+    .aassocier ul {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 54em) {
+    .direction__image,
+    .direction__texte {
+      grid-column: 1 / -1;
+    }
+    .direction__image {
+      max-width: 20rem;
+    }
+    .membres {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--pas-6) var(--pas-4);
     }
   }
 </style>

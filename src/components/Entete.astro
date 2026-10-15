@@ -1,0 +1,392 @@
+---
+/*
+ * En-tête : logo, quatre menus déroulants (Le labo, Projets, Équipe, Publications), le lien Nouvelles
+ * et le bouton Nous joindre. Les menus s'ouvrent au clic ou avec Entrée, se ferment avec Échap,
+ * en cliquant ailleurs ou en quittant le menu au clavier. Jamais au simple survol.
+ * Sur mobile, le bouton Menu ouvre un panneau où chaque menu se déplie en accordéon.
+ */
+import { t, lien } from '../i18n/ui';
+import { parLangue, projetsPhares, titreCourt, slug } from '../lib/contenu';
+import Icone from './Icone.astro';
+
+interface Props {
+  lang: string;
+  section?: 'labo' | 'projets' | 'equipe' | 'publications' | 'nouvelles' | 'contact';
+}
+const { lang, section } = Astro.props;
+const phares = await projetsPhares(lang);
+const totalProjets = (await parLangue('projets', lang)).length;
+const chemin = Astro.url.pathname;
+
+const menus = [
+  {
+    cle: 'labo',
+    texte: t(lang, 'nav.labo'),
+    liens: [
+      { texte: t(lang, 'nav.labo.mission'), href: lien(lang, 'le-labo') },
+      { texte: t(lang, 'nav.labo.direction'), href: lien(lang, 'le-labo/#direction') },
+      { texte: t(lang, 'nav.labo.vie'), href: lien(lang, 'vie-du-labo') },
+    ],
+  },
+  {
+    cle: 'projets',
+    texte: t(lang, 'nav.projets'),
+    liens: [
+      ...phares.map((p) => ({ texte: titreCourt(p), href: lien(lang, `projets/${slug(p.id)}`) })),
+      { texte: `${t(lang, 'nav.projets.tous')} (${totalProjets})`, href: lien(lang, 'projets'), fort: true },
+    ],
+  },
+  {
+    cle: 'equipe',
+    texte: t(lang, 'nav.equipe'),
+    liens: [
+      { texte: t(lang, 'nav.equipe.actuels'), href: lien(lang, 'equipe/#actuels') },
+      { texte: t(lang, 'nav.equipe.diplomes'), href: lien(lang, 'equipe/#diplomes') },
+      { texte: t(lang, 'nav.equipe.etudier'), href: lien(lang, 'equipe/#etudier') },
+    ],
+  },
+  {
+    cle: 'publications',
+    texte: t(lang, 'nav.publications'),
+    liens: [
+      { texte: t(lang, 'nav.publications.articles'), href: lien(lang, 'publications/?type=article') },
+      { texte: t(lang, 'nav.publications.transfert'), href: lien(lang, 'publications/?type=transfert') },
+      { texte: t(lang, 'nav.publications.medias'), href: lien(lang, 'medias') },
+    ],
+  },
+] as const;
+---
+
+<header class="entete" data-entete>
+  <div class="cadre entete__rang">
+    <a class="entete__logo" href={lien(lang)}>
+      <img src={`/images/labe/labe-horizontal-${lang}.png`} alt={`LABE, ${t(lang, 'site.nom')} : ${t(lang, 'nav.accueil')}`} width="900" height="327" />
+    </a>
+
+    <button class="entete__ouvrir" type="button" aria-expanded="false" aria-controls="navigation" data-ouvrir data-texte-menu={t(lang, 'nav.menu')} data-texte-fermer={t(lang, 'nav.fermer')}>
+      <span class="entete__icone-menu"><Icone nom="menu" taille={20} /></span>
+      <span class="entete__icone-fermer"><Icone nom="fermer" taille={20} /></span>
+      <span data-libelle-menu>{t(lang, 'nav.menu')}</span>
+    </button>
+
+    <nav id="navigation" class="entete__nav" aria-label={t(lang, 'nav.principale')} data-nav>
+      <ul class="entete__liste">
+        {
+          menus.map((m) => (
+            <li class="menu" data-menu>
+              <button
+                class:list={['menu__bouton', { 'est-actif': section === m.cle }]}
+                type="button"
+                aria-expanded="false"
+                aria-controls={`menu-${m.cle}`}
+              >
+                {m.texte}
+                <Icone nom="chevron" taille={14} class="menu__chevron" />
+              </button>
+              <div class="menu__panneau" id={`menu-${m.cle}`} hidden>
+                <ul>
+                  {m.liens.map((l) => (
+                    <li>
+                      <a
+                        class:list={['menu__lien', { 'menu__lien--fort': 'fort' in l && l.fort }]}
+                        href={l.href}
+                        aria-current={chemin === l.href ? 'page' : undefined}
+                      >
+                        {l.texte}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ))
+        }
+        <li>
+          <a
+            class:list={['menu__bouton', 'menu__bouton--lien', { 'est-actif': section === 'nouvelles' }]}
+            href={lien(lang, 'nouvelles')}
+            aria-current={section === 'nouvelles' ? 'page' : undefined}>{t(lang, 'nav.nouvelles')}</a
+          >
+        </li>
+        <li class="entete__appel">
+          <a class="bouton" href={lien(lang, 'nous-joindre')} aria-current={section === 'contact' ? 'page' : undefined}
+            >{t(lang, 'nav.contact')}</a
+          >
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const entete = document.querySelector<HTMLElement>('[data-entete]');
+  if (entete) {
+    const menus = [...entete.querySelectorAll<HTMLElement>('[data-menu]')];
+    const ouvrir = entete.querySelector<HTMLButtonElement>('[data-ouvrir]')!;
+    const nav = entete.querySelector<HTMLElement>('[data-nav]')!;
+
+    const fermerMenu = (m: HTMLElement) => {
+      m.querySelector('button')!.setAttribute('aria-expanded', 'false');
+      m.querySelector<HTMLElement>('.menu__panneau')!.hidden = true;
+    };
+    const ouvrirMenu = (m: HTMLElement) => {
+      menus.filter((x) => x !== m).forEach(fermerMenu);
+      m.querySelector('button')!.setAttribute('aria-expanded', 'true');
+      m.querySelector<HTMLElement>('.menu__panneau')!.hidden = false;
+    };
+
+    for (const m of menus) {
+      const bouton = m.querySelector('button')!;
+      bouton.addEventListener('click', () => {
+        if (bouton.getAttribute('aria-expanded') === 'true') fermerMenu(m);
+        else ouvrirMenu(m);
+      });
+      m.addEventListener('focusout', (e) => {
+        const vers = (e as FocusEvent).relatedTarget as Node | null;
+        if (vers && !m.contains(vers) && window.matchMedia('(min-width: 64em)').matches) fermerMenu(m);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const ouvert = menus.find((m) => m.querySelector('button')!.getAttribute('aria-expanded') === 'true');
+      if (ouvert) {
+        fermerMenu(ouvert);
+        ouvert.querySelector('button')!.focus();
+      } else if (ouvrir.getAttribute('aria-expanded') === 'true') {
+        ouvrir.click();
+        ouvrir.focus();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!entete.contains(e.target as Node)) menus.forEach(fermerMenu);
+    });
+
+    ouvrir.addEventListener('click', () => {
+      const ouvert = ouvrir.getAttribute('aria-expanded') === 'true';
+      ouvrir.setAttribute('aria-expanded', String(!ouvert));
+      nav.classList.toggle('est-ouvert', !ouvert);
+      const libelle = ouvrir.querySelector('[data-libelle-menu]');
+      if (libelle) libelle.textContent = (!ouvert ? ouvrir.dataset.texteFermer : ouvrir.dataset.texteMenu) ?? '';
+      document.documentElement.classList.toggle('menu-mobile-ouvert', !ouvert);
+    });
+  }
+</script>
+
+<style>
+  .entete {
+    position: relative;
+    z-index: 20;
+    background: var(--c-fond);
+    border-bottom: 3px solid var(--c-filet);
+  }
+  .entete__rang {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pas-5);
+    min-height: 5.75rem;
+  }
+  .entete__logo {
+    display: block;
+    flex-shrink: 0;
+    line-height: 0;
+  }
+  .entete__logo img {
+    width: clamp(132px, 14vw, 168px);
+    height: auto;
+  }
+  .entete__liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--pas-1);
+  }
+  .menu {
+    position: relative;
+  }
+  .menu__bouton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0 0.85rem;
+    border: 0;
+    border-radius: var(--rayon-petit);
+    background: none;
+    color: var(--c-texte);
+    font-family: var(--f-texte);
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    position: relative;
+  }
+  .menu__bouton:hover {
+    background: var(--c-surface);
+    color: var(--c-texte);
+  }
+  .menu__bouton.est-actif {
+    color: var(--c-action);
+    font-weight: 600;
+  }
+  .menu__bouton.est-actif::after {
+    content: '';
+    position: absolute;
+    left: 0.85rem;
+    right: 0.85rem;
+    bottom: 0.2rem;
+    height: 2px;
+    background: currentColor;
+  }
+  .menu__bouton[aria-expanded='true'] {
+    background: var(--c-surface);
+  }
+  .menu__bouton :global(.menu__chevron) {
+    transition: transform 150ms ease;
+  }
+  .menu__bouton[aria-expanded='true'] :global(.menu__chevron) {
+    transform: rotate(180deg);
+  }
+  .menu__panneau {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    left: 0;
+    min-width: 17rem;
+    padding: var(--pas-3);
+    background: var(--c-fond);
+    border: 1px solid var(--c-trait);
+    border-radius: var(--rayon);
+    box-shadow: 0 16px 40px rgba(20, 32, 26, 0.12);
+  }
+  .menu__panneau ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .menu__lien {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--rayon-petit);
+    color: var(--c-texte);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+  .menu__lien:hover {
+    background: var(--c-surface);
+    color: var(--c-action);
+  }
+  .menu__lien[aria-current='page'] {
+    color: var(--c-action);
+    font-weight: 600;
+  }
+  .menu__lien--fort {
+    margin-top: var(--pas-2);
+    border-top: 1px solid var(--c-trait);
+    border-radius: 0 0 var(--rayon-petit) var(--rayon-petit);
+    padding-top: var(--pas-3);
+    color: var(--c-action);
+    font-weight: 600;
+  }
+  .entete__appel {
+    margin-left: var(--pas-3);
+  }
+  .entete__appel .bouton {
+    min-height: 2.75rem;
+  }
+  .entete__ouvrir {
+    display: none;
+    align-items: center;
+    gap: var(--pas-2);
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border: 1.5px solid var(--c-bordure);
+    border-radius: var(--rayon-petit);
+    background: var(--c-fond);
+    color: var(--c-texte);
+    font-family: var(--f-texte);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .entete__icone-fermer {
+    display: none;
+  }
+  .entete__ouvrir[aria-expanded='true'] .entete__icone-fermer {
+    display: inline-flex;
+  }
+  .entete__ouvrir[aria-expanded='true'] .entete__icone-menu {
+    display: none;
+  }
+
+  @media (max-width: 63.99em) {
+    .entete__rang {
+      flex-wrap: wrap;
+      min-height: 4.5rem;
+    }
+    .entete__ouvrir {
+      display: inline-flex;
+    }
+    .entete__nav {
+      display: none;
+      width: 100%;
+      padding-bottom: var(--pas-5);
+    }
+    .entete__nav.est-ouvert {
+      display: block;
+    }
+    .entete__liste {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+    .entete__liste > li {
+      border-bottom: 1px solid var(--c-trait);
+    }
+    .menu__bouton {
+      width: 100%;
+      justify-content: space-between;
+      min-height: 3.5rem;
+      padding: 0 var(--pas-2);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--c-titre);
+      border-radius: 0;
+    }
+    .menu__bouton.est-actif::after {
+      display: none;
+    }
+    .menu__bouton[aria-expanded='true'] {
+      background: none;
+    }
+    .menu__panneau {
+      position: static;
+      min-width: 0;
+      margin: 0 0 var(--pas-3) var(--pas-2);
+      padding: 0 0 0 var(--pas-3);
+      border: 0;
+      border-left: 2px solid var(--c-surface-2);
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .menu__lien--fort {
+      border-top: 0;
+      margin-top: 0;
+    }
+    .entete__appel {
+      margin: var(--pas-5) 0 0;
+      border-bottom: 0 !important;
+    }
+    .entete__appel .bouton {
+      width: 100%;
+      min-height: 3.25rem;
+    }
+  }
+</style>

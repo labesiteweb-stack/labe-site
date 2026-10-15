@@ -1,0 +1,169 @@
+---
+/*
+ * Carte de nouvelle. Avec une image : photo 3:2 en tête. Sans image : carte typographique,
+ * l'épinette du logo en filigrane, jamais une image vide. Les distinctions ont leur propre fond.
+ */
+import { render, type CollectionEntry } from 'astro:content';
+import { t, dateLongue } from '../i18n/ui';
+import { extrait } from '../lib/contenu';
+import AValider from './AValider.astro';
+import Filigrane from './Filigrane.astro';
+import Icone from './Icone.astro';
+
+interface Props {
+  lang: string;
+  n: CollectionEntry<'nouvelles'>;
+  une?: boolean;
+  niveau?: 'h2' | 'h3';
+  /** Texte complet (page Nouvelles) plutôt qu'un extrait (accueil). */
+  complet?: boolean;
+}
+const { lang, n, une = false, niveau = 'h3', complet = false } = Astro.props;
+const { Content } = await render(n);
+const d = n.data;
+const Titre = niveau;
+const quand = d.date_texte ?? dateLongue(d.date, lang);
+const resume = d.extrait ?? extrait(n.body, une ? 320 : 170);
+const categorie = d.categorie === 'distinction' ? t(lang, 'nouvelles.distinction') : t(lang, 'nouvelles.nouvelle');
+---
+
+<article
+  class:list={['nouvelle', `nouvelle--${d.categorie}`, { 'nouvelle--une': une, 'nouvelle--photo': d.image }]}
+  data-categorie={d.categorie}
+  data-annee={d.date.getUTCFullYear()}
+>
+  {d.image && <img class="nouvelle__image" src={d.image} alt={d.image_alt ?? ''} loading="lazy" />}
+  {!d.image && <Filigrane class="nouvelle__filigrane" />}
+  <div class="nouvelle__corps">
+    <p class="etiquette nouvelle__etiquette">
+      {une && <>{t(lang, 'nouvelles.une')} · </>}{categorie} · <time datetime={d.date.toISOString().slice(0, 10)}>{quand}</time>
+    </p>
+    <Titre class="nouvelle__titre">{d.titre}<AValider si={d.a_valider} lang={lang} /></Titre>
+    {complet ? (
+      <div class="nouvelle__texte"><Content /></div>
+    ) : (
+      resume && <p class="nouvelle__texte">{resume}</p>
+    )}
+    {
+      d.lien && (
+        <a class="lien-fleche nouvelle__lien" href={d.lien} data-externe>
+          {t(lang, 'nouvelles.en_savoir_plus')}
+          <span class="visuellement-cache">
+            {' '}
+            : {d.titre} {t(lang, 'lien.externe')}
+          </span>
+          <Icone nom="externe" taille={15} />
+        </a>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .nouvelle {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--rayon);
+    background: var(--c-surface);
+    color: var(--c-texte);
+    min-height: 19rem;
+  }
+  .nouvelle--distinction {
+    background: var(--c-aube);
+  }
+  .nouvelle--photo {
+    background: var(--c-fond);
+    min-height: 0;
+  }
+  .nouvelle__image {
+    aspect-ratio: 3 / 2;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--rayon);
+  }
+  .nouvelle :global(.nouvelle__filigrane) {
+    position: absolute;
+    right: 1rem;
+    bottom: -1.25rem;
+    width: 6.5rem;
+    color: var(--c-filigrane);
+  }
+  .nouvelle--distinction :global(.nouvelle__filigrane) {
+    color: color-mix(in srgb, var(--c-lumiere) 35%, var(--c-aube));
+  }
+  .nouvelle__corps {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--pas-3);
+    flex-grow: 1;
+    padding: var(--pas-6) var(--pas-6) var(--pas-6);
+  }
+  .nouvelle--photo .nouvelle__corps {
+    padding: var(--pas-4) 0 0;
+  }
+  .nouvelle__etiquette {
+    margin: 0;
+  }
+  .nouvelle--distinction .nouvelle__etiquette {
+    color: var(--c-titre);
+  }
+  .nouvelle__titre {
+    margin: 0;
+    font-family: var(--f-titre);
+    font-weight: 500;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    color: var(--c-titre);
+    padding-right: 2.5rem;
+  }
+  .nouvelle__texte {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--c-texte-2);
+    padding-right: 2.5rem;
+  }
+  .nouvelle__texte :global(p) {
+    margin: 0;
+  }
+  .nouvelle__texte :global(p + p) {
+    margin-top: var(--pas-3);
+  }
+  .nouvelle--distinction .nouvelle__texte {
+    color: var(--c-texte);
+  }
+  .nouvelle__lien {
+    margin-top: auto;
+  }
+  .nouvelle--une {
+    min-height: 24rem;
+    justify-content: flex-end;
+  }
+  .nouvelle--une .nouvelle__corps {
+    justify-content: flex-end;
+    padding: var(--pas-7);
+  }
+  .nouvelle--une .nouvelle__titre {
+    font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+    line-height: 1.1;
+    max-width: 38rem;
+  }
+  .nouvelle--une .nouvelle__texte {
+    font-size: 1.0625rem;
+    max-width: 38rem;
+  }
+  .nouvelle--une :global(.nouvelle__filigrane) {
+    width: 12rem;
+    right: 3rem;
+    bottom: auto;
+    top: -1rem;
+  }
+  @media (max-width: 40em) {
+    .nouvelle--une .nouvelle__corps {
+      padding: var(--pas-6);
+    }
+  }
+</style>

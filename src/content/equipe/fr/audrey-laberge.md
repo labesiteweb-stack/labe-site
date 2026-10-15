@@ -10,4 +10,5 @@ codirection: 'Supervision principale : Marie-Claude Richard'
 nom_publication:
 - Laberge A
 ordre: 32
+a_valider: true
 ---

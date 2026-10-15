@@ -1,0 +1,109 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { LANGUES, t, lien } from '../../../i18n/ui';
+import { publiees } from '../../../lib/contenu';
+import AValider from '../../../components/AValider.astro';
+
+export function getStaticPaths() {
+  return LANGUES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const albums = (await publiees('galerie')).sort(
+  (a, b) => (b.data.date?.getTime() ?? -Infinity) - (a.data.date?.getTime() ?? -Infinity),
+);
+const quand = (d?: Date, texte?: string) =>
+  texte ?? (d ? d.toLocaleDateString(lang === 'en' ? 'en-CA' : 'fr-CA', { year: 'numeric', month: 'long', timeZone: 'UTC' }) : '');
+---
+
+<Base lang={lang} titre={t(lang, 'galerie.titre')} description={t(lang, 'galerie.intro')} section="labo">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li><a href={lien(lang, 'le-labo')}>{t(lang, 'nav.labo')}</a></li>
+        <li aria-current="page">{t(lang, 'galerie.titre')}</li>
+      </ol>
+    </nav>
+    <h1>{t(lang, 'galerie.titre')}</h1>
+    <p class="chapo">{t(lang, 'galerie.intro')}</p>
+  </header>
+
+  <ul class="cadre albums">
+    {
+      albums.map((a) => (
+        <li class="album">
+          <img class="photo" src={a.data.couverture ?? a.data.photos[0]} alt="" loading="lazy" />
+          <h2 class="album__titre">
+            <a href={lien(lang, `vie-du-labo/${a.id}`)}>{a.data.titre}</a>
+            <AValider si={a.data.a_valider} lang={lang} />
+          </h2>
+          <p class="meta album__meta">
+            {quand(a.data.date, a.data.date_texte)}
+            {quand(a.data.date, a.data.date_texte) && ' · '}
+            {a.data.photos.length} {a.data.photos.length > 1 ? t(lang, 'galerie.photos') : t(lang, 'galerie.photo')}
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+</Base>
+
+<style>
+  .albums {
+    list-style: none;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pas-7) var(--pas-5);
+  }
+  .album {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--pas-2);
+  }
+  .album img {
+    aspect-ratio: 3 / 2;
+    margin-bottom: var(--pas-2);
+  }
+  .album__titre {
+    margin: 0;
+    font-family: var(--f-texte);
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .album__titre a {
+    text-decoration: none;
+  }
+  .album__titre a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--rayon);
+  }
+  .album__titre a:hover {
+    text-decoration: underline;
+  }
+  .album__titre a:focus-visible {
+    outline: none;
+  }
+  .album__titre a:focus-visible::after {
+    outline: 3px solid var(--c-focus);
+    outline-offset: 6px;
+  }
+  .album__meta {
+    margin: 0;
+  }
+  @media (max-width: 64em) {
+    .albums {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 40em) {
+    .albums {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

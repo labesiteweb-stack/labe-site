@@ -2,6 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import { LANGUES, t, lien } from '../../../i18n/ui';
 import { publiees } from '../../../lib/contenu';
+import AValider from '../../../components/AValider.astro';
 
 export async function getStaticPaths() {
   const albums = await publiees('galerie');
@@ -16,11 +17,17 @@ const quand =
   (d.date ? d.date.toLocaleDateString(lang === 'en' ? 'en-CA' : 'fr-CA', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : '');
 ---
 
-<Base lang={lang} titre={d.titre} section="galerie">
-  <header class="entete-page cadre">
-    <p class="ui retour"><a href={lien(lang, 'galerie')}>{t(lang, 'galerie.retour')}</a></p>
-    <h1>{d.titre}</h1>
-    {quand && <p class="ui quand">{quand}</p>}
+<Base lang={lang} titre={d.titre} description={d.description} section="labo">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li><a href={lien(lang, 'vie-du-labo')}>{t(lang, 'galerie.titre')}</a></li>
+        <li aria-current="page">{d.titre}</li>
+      </ol>
+    </nav>
+    {quand && <p class="etiquette">{quand}</p>}
+    <h1>{d.titre}<AValider si={d.a_valider} lang={lang} /></h1>
     {d.description && <p class="chapo">{d.description}</p>}
   </header>
 
@@ -29,7 +36,7 @@ const quand =
       d.photos.map((p, i) => (
         <li>
           <a href={p} data-index={i}>
-            <img src={p} alt={`${d.titre}, photo ${i + 1}`} loading={i < 6 ? 'eager' : 'lazy'} />
+            <img src={p} alt={`${d.titre}, photo ${i + 1} de ${d.photos.length}`} loading={i < 6 ? 'eager' : 'lazy'} />
           </a>
         </li>
       ))
@@ -38,7 +45,7 @@ const quand =
 
   <dialog class="visionneuse" data-visionneuse aria-label={d.titre}>
     <img data-grande alt="" />
-    <div class="visionneuse__commandes ui">
+    <div class="visionneuse__commandes">
       <button type="button" data-prec>{t(lang, 'galerie.precedente')}</button>
       <span data-compteur></span>
       <button type="button" data-suiv>{t(lang, 'galerie.suivante')}</button>
@@ -81,24 +88,23 @@ const quand =
 </script>
 
 <style>
-  .retour {
-    margin-bottom: var(--pas-5);
-  }
-  .quand {
-    color: var(--epinette);
-    font-weight: 600;
-  }
   .photos {
     list-style: none;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
     gap: var(--pas-4);
+  }
+  .photos a {
+    display: block;
+    border-radius: var(--rayon);
   }
   .photos img {
     width: 100%;
     aspect-ratio: 3 / 2;
     object-fit: cover;
+    border-radius: var(--rayon);
+    transition: opacity 150ms ease;
   }
   .photos a:hover img {
     opacity: 0.88;
@@ -108,13 +114,14 @@ const quand =
     padding: 0;
     max-width: min(92vw, 1600px);
     max-height: 92vh;
-    background: var(--sapin);
+    border-radius: var(--rayon);
+    background: #0f1f16;
   }
   .visionneuse::backdrop {
-    background: rgba(13, 26, 18, 0.88);
+    background: rgba(10, 20, 14, 0.9);
   }
   .visionneuse img {
-    max-height: calc(92vh - 4rem);
+    max-height: calc(92vh - 4.5rem);
     width: auto;
     margin-inline: auto;
   }
@@ -123,18 +130,22 @@ const quand =
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: var(--pas-4);
+    gap: var(--pas-3);
     padding: var(--pas-3);
-    color: var(--blanc);
+    color: #ffffff;
     font-size: 0.95rem;
   }
   .visionneuse__commandes button {
-    font: inherit;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    border-radius: var(--rayon-petit);
     background: none;
-    color: var(--blanc);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 999px;
-    padding: 0.35rem 0.9rem;
+    color: #ffffff;
+    font: inherit;
     cursor: pointer;
+  }
+  .visionneuse__commandes button:focus-visible {
+    outline-color: #f2b33d;
   }
 </style>
