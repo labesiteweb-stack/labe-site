@@ -4,7 +4,6 @@
 
 backend:
   name: github
-  # À REMPLIR à la création du dépôt : compte GitHub dédié / nom du dépôt
   repo: labesiteweb-stack/labe-site
   branch: main
   # Service de connexion (Cloudflare Worker sveltia-cms-auth)
@@ -20,7 +19,7 @@ backend:
 app_title: LABE, gestion du contenu
 logo:
   src: /favicon.png
-# À REMPLIR à la mise en ligne
+# Adresse publique du site (à changer le jour du nom de domaine, voir docs/mise-en-place-comptes.md)
 site_url: https://labe-site.vercel.app
 display_url: https://labe-site.vercel.app
 publish_mode: simple

@@ -22,7 +22,7 @@ npm run build   # construit le site dans dist/
 - `src/i18n/ui.ts` : les textes de l'interface (menus, boutons)
 - `public/images/` : logos, portraits, photos de la galerie (déjà optimisées)
 - `public/admin/` : le CMS (Sveltia, version figée) et sa configuration `config.yml`
-- `docs/mise-en-place-comptes.md` : l'ordre de création des comptes et du branchement
+- `docs/mise-en-place-comptes.md` : comment le site est branché (comptes, adresses, réglages), la procédure du jour du nom de domaine et la liste de la remise
 
 ## Règles du contenu
 
