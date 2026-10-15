@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 // À la mise en ligne : remplacer par le vrai domaine (voir checklist de mise en ligne).
-const SITE = 'https://labe.example.org';
+const SITE = 'https://labe-site.vercel.app';
 
 export default defineConfig({
   site: SITE,

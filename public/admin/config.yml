@@ -21,8 +21,8 @@ app_title: LABE, gestion du contenu
 logo:
   src: /favicon.png
 # À REMPLIR à la mise en ligne
-site_url: https://labe.example.org
-display_url: https://labe.example.org
+site_url: https://labe-site.vercel.app
+display_url: https://labe-site.vercel.app
 publish_mode: simple
 
 output:
