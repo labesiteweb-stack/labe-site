@@ -1,0 +1,162 @@
+---
+// Sélecteur de palette, présent seulement sur la branche d'aperçu apercu-couleurs.
+// Le choix est gardé d'une page à l'autre, et peut être imposé par l'adresse : ?palette=a, b, c ou actuelle.
+const palettes = [
+  { id: 'actuelle', nom: 'Actuelle', note: 'Le site en ligne aujourd’hui.', couleurs: ['#446e53', '#1d3527', '#d9a53c', '#ffffff'] },
+  { id: 'a', nom: 'A', note: 'Charte présentée le 6 octobre : vert LABE, vert forêt, ardoise, fond papier.', couleurs: ['#4a6a52', '#22332a', '#4e6e86', '#f2f3ef'] },
+  { id: 'b', nom: 'B', note: 'Test UdeM : bas de page turquoise pâle, touches bleu UdeM.', couleurs: ['#4a6a52', '#c9edea', '#0069b4', '#f2f3ef'] },
+  { id: 'c', nom: 'C', note: 'Variante UdeM : bas de page bleu marine, touches bleu UdeM.', couleurs: ['#4a6a52', '#0a1440', '#0069b4', '#f2f3ef'] },
+];
+---
+
+<aside class="choix ui" aria-label="Aperçu des couleurs">
+  <div class="choix__rang">
+  <button type="button" class="choix__replier" aria-expanded="true" title="Masquer ou afficher le sélecteur">Couleurs</button>
+  <div class="choix__boutons" role="group" aria-label="Palette">
+    {
+      palettes.map((p) => (
+        <button type="button" data-palette-choix={p.id} data-note={p.note} aria-pressed="false">
+          <span class="choix__pastilles" aria-hidden="true">
+            {p.couleurs.map((c) => (
+              <span style={`background:${c}`} />
+            ))}
+          </span>
+          {p.nom}
+        </button>
+      ))
+    }
+  </div>
+  </div>
+  <p class="choix__note" aria-live="polite"></p>
+</aside>
+
+<script>
+  const racine = document.documentElement;
+  const boutons = [...document.querySelectorAll<HTMLButtonElement>('[data-palette-choix]')];
+  const note = document.querySelector<HTMLElement>('.choix__note');
+
+  const appliquer = (id: string) => {
+    if (id === 'actuelle') {
+      delete racine.dataset.palette;
+    } else {
+      racine.dataset.palette = id;
+    }
+    if (id === 'b') {
+      racine.dataset.pied = 'clair';
+    } else {
+      delete racine.dataset.pied;
+    }
+    for (const b of boutons) {
+      const actif = b.dataset.paletteChoix === id;
+      b.setAttribute('aria-pressed', String(actif));
+      if (actif && note) note.textContent = b.dataset.note ?? '';
+    }
+    try {
+      localStorage.setItem('labe-palette', id);
+    } catch {}
+    const url = new URL(location.href);
+    url.searchParams.set('palette', id);
+    history.replaceState(null, '', url);
+  };
+
+  for (const b of boutons) {
+    b.addEventListener('click', () => appliquer(b.dataset.paletteChoix ?? 'actuelle'));
+  }
+
+  const panneau = document.querySelector<HTMLElement>('.choix');
+  const replier = document.querySelector<HTMLButtonElement>('.choix__replier');
+  const plier = (plie: boolean) => {
+    panneau?.classList.toggle('est-plie', plie);
+    replier?.setAttribute('aria-expanded', String(!plie));
+    try {
+      localStorage.setItem('labe-palette-plie', plie ? '1' : '0');
+    } catch {}
+  };
+  replier?.addEventListener('click', () => plier(!panneau?.classList.contains('est-plie')));
+  let plieAuDepart = false;
+  try {
+    plieAuDepart = localStorage.getItem('labe-palette-plie') === '1';
+  } catch {}
+  plier(plieAuDepart);
+  appliquer(racine.dataset.palette ?? 'actuelle');
+</script>
+
+<style>
+  .choix {
+    position: fixed;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 50;
+    max-width: calc(100vw - 1.5rem);
+    padding: 0.45rem 0.5rem;
+    background: #ffffff;
+    color: #16191a;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+    font-size: 0.8rem;
+  }
+  .choix__rang {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .choix__boutons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .choix button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font: inherit;
+    font-weight: 600;
+    padding: 0.3rem 0.5rem;
+    background: #ffffff;
+    color: #16191a;
+    border: 1px solid #b9bdb6;
+    cursor: pointer;
+  }
+  .choix button[aria-pressed='true'] {
+    border-color: #16191a;
+    box-shadow: inset 0 0 0 1px #16191a;
+  }
+  .choix .choix__replier {
+    border-color: transparent;
+    padding-inline: 0.35rem;
+  }
+  .choix__replier::after {
+    content: '‹';
+    margin-left: 0.25rem;
+  }
+  .choix.est-plie .choix__replier::after {
+    content: '›';
+  }
+  .choix.est-plie .choix__boutons,
+  .choix.est-plie .choix__note {
+    display: none;
+  }
+  .choix__pastilles {
+    display: inline-flex;
+  }
+  .choix__pastilles span {
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+  .choix__pastilles span + span {
+    margin-left: -1px;
+  }
+  .choix__note {
+    margin: 0.35rem 0.2rem 0.05rem;
+    max-width: 22rem;
+    color: #4a524c;
+    line-height: 1.35;
+  }
+  @media print {
+    .choix {
+      display: none;
+    }
+  }
+</style>

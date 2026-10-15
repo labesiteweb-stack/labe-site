@@ -54,6 +54,18 @@
   --meleze: #d9a53c;
   --blanc: #ffffff;
 
+  /* Rôles de couleur (redéfinis par les palettes d'aperçu, voir src/styles/palettes.css) */
+  --fond: var(--blanc);
+  --touche: var(--meleze);
+  --touche-texte: var(--epinette);
+  --touche-texte-fonce: var(--sapin);
+  --touche-pale: var(--lichen);
+  --filet: var(--trait);
+  --filet-epaisseur: 1px;
+  --pied-fond: var(--sapin);
+  --pied-texte: #dfe8de;
+  --pied-fort: var(--blanc);
+
   --titre: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --texte: 'Newsreader', Georgia, 'Times New Roman', serif;
 
@@ -85,7 +97,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--blanc);
+  background: var(--fond);
   color: var(--encre);
   font-family: var(--texte);
   font-optical-sizing: auto;
@@ -149,7 +161,7 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 3px solid var(--meleze);
+  outline: 3px solid var(--touche);
   outline-offset: 2px;
   border-radius: 2px;
 }

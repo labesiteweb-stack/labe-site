@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import '../styles/palettes.css';
+import ChoixPalette from '../components/ChoixPalette.astro';
 import { getEntry } from 'astro:content';
 import { t, lien } from '../i18n/ui';
 
@@ -44,6 +46,18 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:type" content="website" />
     <meta property="og:image" content={new URL('/images/accueil/equipe-crchum.webp', Astro.site)} />
     <meta name="theme-color" content="#1d3527" />
+    <script is:inline>
+      (() => {
+        let id = new URLSearchParams(location.search).get('palette');
+        try {
+          id = id || localStorage.getItem('labe-palette');
+        } catch {}
+        if (id && id !== 'actuelle' && ['a', 'b', 'c'].includes(id)) {
+          document.documentElement.dataset.palette = id;
+          if (id === 'b') document.documentElement.dataset.pied = 'clair';
+        }
+      })();
+    </script>
   </head>
   <body>
     <a class="evitement" href="#contenu">{t(lang, 'lien.evitement')}</a>
@@ -79,7 +93,8 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
     <footer class="pied">
       <div class="cadre pied__grille">
         <div class="pied__marque">
-          <img src={`/images/labe/labe-vertical-${lang}-blanc.png`} alt="" width="150" height="150" loading="lazy" />
+          <img class="pied__logo pied__logo--blanc" src={`/images/labe/labe-vertical-${lang}-blanc.png`} alt="" width="150" height="150" loading="lazy" />
+          <img class="pied__logo pied__logo--couleur" src={`/images/labe/labe-vertical-${lang}.png`} alt="" width="150" height="150" loading="lazy" />
         </div>
         <div>
           <h2 class="pied__titre">{t(lang, 'contact.coordonnees')}</h2>
@@ -136,6 +151,7 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
         nav?.classList.toggle('est-ouvert', !ouvert);
       });
     </script>
+    <ChoixPalette />
   </body>
 </html>
 
@@ -155,8 +171,8 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
   }
 
   .entete {
-    border-bottom: 1px solid var(--trait);
-    background: var(--blanc);
+    border-bottom: var(--filet-epaisseur) solid var(--filet);
+    background: var(--fond);
   }
   .entete__rang {
     display: flex;
@@ -251,13 +267,13 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
   }
 
   .pied {
-    background: var(--sapin);
-    color: #dfe8de;
+    background: var(--pied-fond);
+    color: var(--pied-texte);
     margin-top: var(--pas-9);
     padding-top: var(--pas-8);
   }
   .pied a {
-    color: var(--blanc);
+    color: var(--pied-fort);
   }
   .pied__grille {
     display: grid;
@@ -268,11 +284,20 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
   .pied__marque img {
     width: 9rem;
   }
+  .pied__logo--couleur {
+    display: none;
+  }
+  :global(:root[data-pied='clair']) .pied__logo--blanc {
+    display: none;
+  }
+  :global(:root[data-pied='clair']) .pied__logo--couleur {
+    display: block;
+  }
   .pied__titre {
     font-size: 1rem;
     font-weight: 600;
     font-stretch: 105%;
-    color: var(--blanc);
+    color: var(--pied-fort);
     margin: 0 0 var(--pas-3);
   }
   .pied__titre:not(:first-child) {
@@ -284,7 +309,7 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
     line-height: 1.5;
   }
   .pied__adresse strong {
-    color: var(--blanc);
+    color: var(--pied-fort);
     font-weight: 600;
   }
   .pied__ligne {
@@ -300,7 +325,7 @@ const canonique = new URL(Astro.url.pathname, Astro.site);
   .pied__bas {
     margin-top: var(--pas-7);
     padding-block: var(--pas-5);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid var(--pied-trait, rgba(255, 255, 255, 0.15));
     font-size: 0.875rem;
   }
   @media (max-width: 48rem) {

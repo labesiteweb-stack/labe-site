@@ -1,0 +1,53 @@
+/*
+  Palettes d'aperçu (branche apercu-couleurs seulement).
+  Chaque palette redéfinit les couleurs de base et les rôles déclarés dans global.css.
+  La palette par défaut (aucun attribut data-palette) est celle du site en ligne.
+*/
+
+/* A. Charte présentée à Isabelle le 6 oct. 2026 : Vert LABE, Vert forêt, Encre, Papier, Ardoise */
+:root[data-palette='a'],
+:root[data-palette='b'],
+:root[data-palette='c'] {
+  --epinette: #4a6a52;
+  --epinette-claire: #6a8a71;
+  --sapin: #22332a;
+  --encre: #16191a;
+  --gris-mousse: #4a524c;
+  --fond: #f2f3ef;
+  --brume: #e7e9e3;
+  --lichen: #dde5dc;
+  --trait: #d2d6cd;
+
+  --touche: #4e6e86;
+  --touche-texte: #4e6e86;
+  --touche-texte-fonce: #34495a;
+  --touche-pale: #e1e8ee;
+}
+
+/* B. Version test UdeM : bas de page turquoise pâle, touches bleu UdeM, filet turquoise vif */
+:root[data-palette='b'] {
+  --touche: #0069b4;
+  --touche-texte: #0069b4;
+  --touche-texte-fonce: #004f88;
+  --touche-pale: #dfecf7;
+  --brume: #e6f4f2;
+  --filet: #2bb3aa;
+  --filet-epaisseur: 3px;
+  --pied-fond: #c9edea;
+  --pied-texte: #16191a;
+  --pied-fort: #16191a;
+  --pied-trait: rgba(22, 25, 26, 0.18);
+}
+
+/* C. Variante UdeM marine : comme B, mais bas de page foncé en bleu marine */
+:root[data-palette='c'] {
+  --touche: #0069b4;
+  --touche-texte: #0069b4;
+  --touche-texte-fonce: #004f88;
+  --touche-pale: #dfecf7;
+  --filet: #2bb3aa;
+  --filet-epaisseur: 3px;
+  --pied-fond: #0a1440;
+  --pied-texte: #d6dbef;
+  --pied-fort: #ffffff;
+}
