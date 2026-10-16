@@ -70,6 +70,7 @@ export const ui = {
     'projets.intro': "Les projets que le LABE dirige, et ceux auxquels l'équipe contribue avec d'autres chercheuses et chercheurs.",
     'projets.phares': 'Projets phares',
     'projets.tous': 'Tous les projets',
+    'projets.tous.note': "Un titre souligné mène à la page du projet. Les projets auxquels le LABE contribue sont présentés sur le site de l'équipe qui les dirige.",
     'projets.filtre': 'Afficher',
     'projets.en_cours': 'En cours',
     'projets.termines': 'Terminés',

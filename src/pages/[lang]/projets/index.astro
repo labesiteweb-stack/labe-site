@@ -48,7 +48,10 @@ const nbDiriges = tous.filter((p) => p.data.role !== 'co-chercheuse').length;
   <section class="section section--surface" aria-labelledby="tous">
     <div class="cadre">
       <div class="tous__tete">
-        <h2 id="tous">{t(lang, 'projets.tous')} <span class="tous__nombre">({tous.length})</span></h2>
+        <div>
+          <h2 id="tous">{t(lang, 'projets.tous')} <span class="tous__nombre">({tous.length})</span></h2>
+          <p class="tous__note">{t(lang, 'projets.tous.note')}</p>
+        </div>
         <div class="tous__filtres" data-filtres hidden>
           <div class="filtres" role="group" aria-label={t(lang, 'projets.filtre')}>
             <button class="filtre" type="button" aria-pressed="true" data-statut="">{t(lang, 'projets.tout')} <span>{tous.length}</span></button>
@@ -68,7 +71,7 @@ const nbDiriges = tous.filter((p) => p.data.role !== 'co-chercheuse').length;
             const d = p.data;
             const ec = enCours(d.fin);
             return (
-              <li class="projet" data-projet data-statut={ec ? 'en-cours' : 'termine'} data-role={d.role === 'co-chercheuse' ? 'contribue' : 'dirige'}>
+              <li class="projet" id={slug(p.id)} data-projet data-statut={ec ? 'en-cours' : 'termine'} data-role={d.role === 'co-chercheuse' ? 'contribue' : 'dirige'}>
                 <div class="projet__cote">
                   <span class="projet__periode">{periode(d.debut, d.fin)}</span>
                   <span class:list={['pastille', { 'pastille--calme': !ec }]}>
@@ -157,6 +160,11 @@ const nbDiriges = tous.filter((p) => p.data.role !== 'co-chercheuse').length;
   }
   .tous__tete h2 {
     margin: 0;
+  }
+  .tous__note {
+    max-width: 38rem;
+    margin: var(--pas-2) 0 0;
+    color: var(--c-texte-2);
   }
   .tous__nombre {
     color: var(--c-texte-2);

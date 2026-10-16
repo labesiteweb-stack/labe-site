@@ -2,7 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import { render } from 'astro:content';
 import { LANGUES, t, lien } from '../../../i18n/ui';
-import { parLangue, slug, periode, enCours, titreCourt, projetsPhares } from '../../../lib/contenu';
+import { parLangue, slug, periode, enCours, titreCourt, projetsPhares, projetAUnePage } from '../../../lib/contenu';
 import AValider from '../../../components/AValider.astro';
 import Icone from '../../../components/Icone.astro';
 
@@ -18,6 +18,8 @@ export async function getStaticPaths() {
 
 const { lang } = Astro.params;
 const { p } = Astro.props;
+// Sans description, pas de page : l'ancienne adresse renvoie à la ligne du projet dans la liste.
+if (!projetAUnePage(p)) return Astro.redirect(`${lien(lang, 'projets')}#${slug(p.id)}`);
 const { Content } = await render(p);
 const d = p.data;
 const ec = enCours(d.fin);

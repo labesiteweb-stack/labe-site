@@ -74,7 +74,7 @@ export const APERCU = process.env.VERCEL_ENV !== 'production';
 /** Projets phares : cochés dans le CMS, triés par ordre, cinq au plus. */
 export async function projetsPhares(lang: string) {
   return (await parLangue('projets', lang))
-    .filter((p) => p.data.phare)
+    .filter((p) => p.data.phare && projetAUnePage(p))
     .sort((a, b) => a.data.ordre - b.data.ordre || b.data.debut - a.data.debut)
     .slice(0, 5);
 }
@@ -82,9 +82,12 @@ export async function projetsPhares(lang: string) {
 /** Titre à afficher dans les menus et les cartes : le titre court s'il existe. */
 export const titreCourt = (p: { data: { titre: string; titre_court?: string } }) => p.data.titre_court ?? p.data.titre;
 
-/** Une page de projet existe quand il y a une description ou des noms à montrer. */
-export const projetAUnePage = (p: { body?: string; data: { co_chercheurs?: string; resume?: string } }) =>
-  Boolean(p.body?.trim()) || Boolean(p.data.co_chercheurs) || Boolean(p.data.resume);
+/**
+ * Un projet a sa propre page seulement s'il a une description (le texte de la fiche dans le CMS).
+ * Sans description, il reste une ligne de la liste : une page n'aurait rien de plus à montrer.
+ * Dès qu'une description est ajoutée dans le CMS, la page se crée et le titre devient cliquable.
+ */
+export const projetAUnePage = (p: { body?: string }) => Boolean(p.body?.trim());
 
 /** Initiales pour le monogramme d'un portrait absent (« Isabelle Doré, Ph. D. » donne « ID »). */
 export function initiales(nom: string) {
