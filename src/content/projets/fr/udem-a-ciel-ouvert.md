@@ -6,7 +6,7 @@ financement: Université de Montréal, Appui aux initiatives intersectorielles
 role: principale
 co_chercheurs: Bruno Poellhuber, Xavier Gravend-Tirole
 partenaires: 'Collaborateurs : Alexandre Beaudoin, Viet Pham, Charles-Étienne White-Gosselin'
-a_valider: true
+a_valider: "Titre court, résumé et description rédigés par nous : à relire. La photo est une photo d'ambiance du labo : y en a-t-il une du projet?"
 phare: true
 ordre: 3
 titre_court: UdeM à ciel ouvert

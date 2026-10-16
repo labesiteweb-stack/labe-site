@@ -10,5 +10,5 @@ codirection: 'Supervision principale : Marie-Claude Richard'
 nom_publication:
 - Laberge A
 ordre: 32
-a_valider: true
+a_valider: "Prix et bourses à compléter (le CV contient des notes à ce sujet) : ouvrir « Voir la fiche »."
 ---

@@ -3,7 +3,7 @@ titre: Financement de l'Oncopole pour le projet coACTIF
 date: '2023-01-02'
 date_texte: '2023'
 categorie: distinction
-a_valider: true
+a_valider: "Date approximative (affichée : 2023) : quelle est la date exacte du financement?"
 brouillon: false
 ---
 

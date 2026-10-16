@@ -1,21 +1,30 @@
 ---
-/* Étiquette « À valider » : visible seulement sur la version d'aperçu, jamais sur le site en ligne. */
+/*
+  Étiquette « À valider » : visible seulement sur la version d'aperçu, jamais sur le site en ligne.
+  Elle dit toujours ce qu'il faut valider. Le texte vient :
+  - de la propriété `note`, quand la page précise elle-même le point (portrait, promesse, etc.) ;
+  - sinon du champ « À valider » de la fiche dans le CMS (`a_valider`), quand il contient un texte.
+  Une fiche validée : on vide le champ dans le CMS, et l'étiquette disparaît.
+*/
 import { APERCU } from '../lib/contenu';
 import { t } from '../i18n/ui';
 
 interface Props {
-  si?: boolean;
+  si?: boolean | string;
   lang?: string;
   note?: string;
+  class?: string;
 }
-const { si = true, lang = 'fr', note } = Astro.props;
+const { si = true, lang = 'fr', note, class: classe } = Astro.props;
+const texte = (note ?? (typeof si === 'string' ? si : '')).trim();
+const actif = APERCU && (typeof si === 'string' ? si.trim() !== '' : si);
 ---
 
 {
-  APERCU && si && (
-    <span class="a-valider" title={note}>
-      {t(lang, 'apercu.a_valider')}
-      {note && <span class="visuellement-cache"> : {note}</span>}
-    </span>
+  actif && (
+    <p class:list={['a-valider', classe]}>
+      <strong>{t(lang, 'apercu.a_valider')}</strong>
+      {texte && <span> : {texte}</span>}
+    </p>
   )
 }

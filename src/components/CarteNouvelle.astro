@@ -38,7 +38,8 @@ const categorie = d.categorie === 'distinction' ? t(lang, 'nouvelles.distinction
     <p class="etiquette nouvelle__etiquette">
       {une && <>{t(lang, 'nouvelles.une')} · </>}{categorie} · <time datetime={d.date.toISOString().slice(0, 10)}>{quand}</time>
     </p>
-    <Titre class="nouvelle__titre">{d.titre}<AValider si={d.a_valider} lang={lang} /></Titre>
+    <Titre class="nouvelle__titre">{d.titre}</Titre>
+    <AValider si={d.a_valider} lang={lang} />
     {complet ? (
       <div class="nouvelle__texte"><Content /></div>
     ) : (

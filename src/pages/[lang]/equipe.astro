@@ -51,7 +51,7 @@ const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|e
       <section class="cadre direction" aria-labelledby="direction">
         <div class="direction__image">
           <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} eager />
-          <AValider si={direction.data.a_valider} lang={lang} note="Portrait présumé" />
+          <AValider si={direction.data.a_valider} lang={lang} note="Ce portrait est-il bien celui d'Isabelle? Lequel préfère-t-elle parmi ceux de la séance de 2025?" />
         </div>
         <div class="direction__texte">
           <p class="etiquette">{t(lang, 'equipe.direction')}</p>
@@ -89,10 +89,7 @@ const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|e
           return (
             <li class="membre" data-role={d.role}>
               <Portrait nom={d.nom} photo={d.photo} cadrage={d.cadrage} />
-              <h3 class="membre__nom">
-                {d.nom}
-                <AValider si={d.a_valider} lang={lang} />
-              </h3>
+              <h3 class="membre__nom">{d.nom}</h3>
               <p class="membre__titre">{d.titre}</p>
               {d.sujet && (
                 <p class="membre__sujet" lang={sujetLangue(d.sujet)}>
@@ -151,6 +148,7 @@ const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|e
                   )}
                 </details>
               )}
+              <AValider si={d.a_valider} lang={lang} class="membre__a-valider" />
             </li>
           );
         })
@@ -162,9 +160,8 @@ const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|e
     APERCU && (
       <section class="cadre aassocier" aria-labelledby="aassocier">
         <div class="aassocier__boite">
-          <h2 id="aassocier">
-            Portraits de la séance de 2025 à associer <span class="a-valider">{t(lang, 'apercu.a_valider')}</span>
-          </h2>
+          <h2 id="aassocier">Portraits de la séance de 2025 à associer</h2>
+          <AValider lang={lang} note="Associer chaque portrait (A à H) à un nom, et dire qui n'a pas encore de portrait." />
           <p>
             Visible seulement sur la version d'aperçu. Pour chaque lettre, indiquer le nom de la personne : le portrait remplacera alors son
             monogramme.

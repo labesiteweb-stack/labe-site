@@ -189,6 +189,11 @@
   box-sizing: border-box;
 }
 
+/* Un élément masqué par un filtre (attribut hidden) reste masqué, même si son style lui donne display: grid ou flex. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -551,24 +556,27 @@ a:hover {
 
 /* ---------------------------------------------------------------- Aperçu : contenu à valider */
 .a-valider {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  margin: 0 0.4em;
-  padding: 0.1em 0.5em;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--pas-2) 0;
+  padding: 0.35em 0.65em;
   border: 1.5px dashed #8a5a00;
   border-radius: var(--rayon-petit);
   background: #fff4d6;
   color: #5c3d00;
   font-family: var(--f-texte);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   font-style: normal;
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-align: left;
   text-transform: none;
-  vertical-align: middle;
-  white-space: nowrap;
+  white-space: normal;
+}
+.a-valider strong {
+  font-weight: 700;
 }
 
 @media (prefers-reduced-motion: reduce) {

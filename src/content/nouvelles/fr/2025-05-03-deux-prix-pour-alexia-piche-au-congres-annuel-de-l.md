@@ -2,7 +2,7 @@
 titre: Deux prix pour Alexia Piché au congrès annuel de la kinésiologie
 date: '2025-05-03'
 categorie: distinction
-a_valider: true
+a_valider: "Prix et date (mai 2025) déduits du CV : exacts?"
 brouillon: false
 ---
 

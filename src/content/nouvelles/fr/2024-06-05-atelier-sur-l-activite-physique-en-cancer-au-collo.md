@@ -2,7 +2,7 @@
 titre: Atelier sur l'activité physique en cancer au colloque du ROCO
 date: '2024-06-05'
 categorie: nouvelle
-a_valider: true
+a_valider: "Animatrices et date (juin 2024) déduites du CV : exactes?"
 brouillon: false
 ---
 

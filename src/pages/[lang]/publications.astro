@@ -118,8 +118,8 @@ const reference = (p: (typeof pubs)[number]) =>
                   </p>
                   <h3 class="ref__titre" lang={langue !== lang ? langue : undefined}>
                     {d.titre}
-                    <AValider si={d.a_valider} lang={lang} />
                   </h3>
+                  <AValider si={d.a_valider} lang={lang} />
                   <p class="ref__auteurs">
                     {au.reste > 0 ? (
                       <>

@@ -2,7 +2,7 @@
 titre: coACTIF à la Journée de la recherche de l'EKSAP
 date: '2025-03-27'
 categorie: nouvelle
-a_valider: true
+a_valider: "Présentatrice et date (mars 2025) déduites du CV : exactes?"
 brouillon: false
 ---
 

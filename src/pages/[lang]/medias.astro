@@ -52,8 +52,8 @@ const annees = [...new Set(medias.map((m) => m.data.date.getUTCFullYear()))];
                   ) : (
                     m.data.titre
                   )}
-                  <AValider si={m.data.a_valider} lang={lang} />
                 </h3>
+                <AValider si={m.data.a_valider} lang={lang} />
               </li>
             ))}
         </ul>

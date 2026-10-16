@@ -6,7 +6,7 @@ financement: Conseil de recherches en sciences humaines du Canada (CRSH), Subven
 role: principale
 co_chercheurs: Marie-Pierre Sylvestre, Jennifer O'Loughlin, Magali Dufour, Mathieu Bélanger, Leslie Podlog, Magalie Brodeur, Marie-Claude Geoffroy, Marie-Eve Langelier, Marie-Claude Richard, Corentin Montiel
 logo: /images/logos/seenat.png
-a_valider: true
+a_valider: "Titre court, résumé et description rédigés par nous : à relire. La photo est une photo d'ambiance du labo : y en a-t-il une du projet?"
 phare: true
 ordre: 2
 titre_court: SeeNAT

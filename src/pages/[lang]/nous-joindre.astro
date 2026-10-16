@@ -50,10 +50,8 @@ const externe = (h: string) => /^https?:/.test(h);
     </ul>
 
     <aside class="coordonnees" id="coordonnees" aria-labelledby="coord-titre">
-      <h2 id="coord-titre">
-        {t(lang, 'contact.coordonnees')}
-        <AValider lang={lang} note="Courriel et téléphone du labo, adresse à afficher" />
-      </h2>
+      <h2 id="coord-titre">{t(lang, 'contact.coordonnees')}</h2>
+      <AValider lang={lang} note="Le courriel et le téléphone sont ceux d'Isabelle (CV) : le labo a-t-il les siens? Afficher seulement le CRCHUM, ou aussi le bureau de l'UdeM?" />
       <dl>
         {
           site.courriel && (

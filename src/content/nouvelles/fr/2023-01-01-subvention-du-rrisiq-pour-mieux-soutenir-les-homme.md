@@ -3,7 +3,7 @@ titre: Subvention du RRISIQ pour mieux soutenir les hommes touchés par le cance
 date: '2023-01-01'
 date_texte: '2023'
 categorie: distinction
-a_valider: true
+a_valider: "Date approximative (affichée : 2023) : quelle est la date exacte de la subvention?"
 brouillon: false
 ---
 

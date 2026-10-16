@@ -11,5 +11,5 @@ distinctions:
 nom_publication:
 - Plante A
 ordre: 44
-a_valider: true
+a_valider: "La bourse du FRQS est datée 2022-2024 dans le CV, alors que la maîtrise se termine en 2022 : quelles dates?"
 ---

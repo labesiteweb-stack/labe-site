@@ -13,5 +13,5 @@ nom_publication:
 - White-Gosselin C
 - White-Gosselin CÉ
 ordre: 20
-a_valider: true
+a_valider: "Ajouté d'après le CV de septembre 2026 : titre et programme exacts? Pas encore de portrait."
 ---

@@ -78,8 +78,8 @@ const nbDiriges = tous.filter((p) => p.data.role !== 'co-chercheuse').length;
                 <div>
                   <h3 class="projet__titre">
                     {projetAUnePage(p) ? <a href={lien(lang, `projets/${slug(p.id)}`)}>{d.titre}</a> : d.titre}
-                    <AValider si={d.a_valider} lang={lang} />
                   </h3>
+                  <AValider si={d.a_valider} lang={lang} />
                   <p class="meta projet__meta">
                     {d.financement}
                     {d.chercheur_principal && (

@@ -13,5 +13,5 @@ distinctions:
 nom_publication:
 - Comtois-Cabana D
 ordre: 33
-a_valider: true
+a_valider: "Prix et bourses à compléter (le CV contient des notes à ce sujet) : ouvrir « Voir la fiche ». Orthographe du nom à confirmer."
 ---

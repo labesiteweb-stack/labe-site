@@ -5,5 +5,5 @@ fin: 2021
 financement: Université de Montréal, Programme de soutien aux projets technosociaux innovants (InvenT)
 role: principale
 co_chercheurs: M.-P. Pomey, C. Bémeur
-a_valider: true
+a_valider: "Aucune description : à rédiger. Le CV donne deux périodes (2021 et 2021-2024) : laquelle est exacte?"
 ---

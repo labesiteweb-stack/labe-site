@@ -1,7 +1,7 @@
 ---
 titre: Comprendre comment *bouger* nous fait du bien.
 etiquette: Laboratoire Activité physique et Bien-Être
-a_valider: true
+a_valider: "Textes rédigés par nous (promesse, portes d'entrée, axes, bloc Le labo) et photo d'équipe : à relire."
 accroche: Le LABE étudie comment l'activité physique peut favoriser la santé mentale et le bien-être, chez les jeunes comme chez les personnes touchées par le cancer et leurs proches.
 axes:
 - titre: Activité physique et santé mentale

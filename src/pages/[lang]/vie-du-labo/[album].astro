@@ -27,7 +27,8 @@ const quand =
       </ol>
     </nav>
     {quand && <p class="etiquette">{quand}</p>}
-    <h1>{d.titre}<AValider si={d.a_valider} lang={lang} /></h1>
+    <h1>{d.titre}</h1>
+    <AValider si={d.a_valider} lang={lang} />
     {d.description && <p class="chapo">{d.description}</p>}
   </header>
 

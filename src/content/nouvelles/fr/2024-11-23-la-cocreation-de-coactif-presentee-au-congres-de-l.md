@@ -2,7 +2,7 @@
 titre: La cocréation de coACTIF présentée au congrès de la SCPE
 date: '2024-11-23'
 categorie: nouvelle
-a_valider: true
+a_valider: "Présentatrice et date (novembre 2024) déduites du CV : exactes?"
 brouillon: false
 ---
 

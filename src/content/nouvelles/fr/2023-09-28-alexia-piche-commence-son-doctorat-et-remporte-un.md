@@ -2,7 +2,7 @@
 titre: Alexia Piché commence son doctorat et remporte un prix au congrès RéseauLAB
 date: '2023-09-28'
 categorie: distinction
-a_valider: true
+a_valider: "Prix RéseauLAB daté de septembre 2023 (le document de contenu disait 2024) : quelle année?"
 brouillon: false
 ---
 

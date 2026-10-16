@@ -7,7 +7,7 @@ role: principale
 co_chercheurs: L. Lessard, G. Moullec, A. Girard, J. Beaudoin, S. Vial
 partenaires: 'Collaborateurs : L. Guicherd-Callin, M. Boniewski'
 logo: /images/logos/qualaxia.png
-a_valider: true
+a_valider: "Le CV donne deux périodes (2023-2024 et 2023-2026) : laquelle est exacte? Description rédigée par nous à partir du titre."
 ---
 
 Qualaxia est un réseau de partage de connaissances en santé mentale des populations, dont Isabelle Doré assure la direction générale et scientifique.

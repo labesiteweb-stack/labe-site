@@ -36,8 +36,8 @@ const quand = (d?: Date, texte?: string) =>
           <img class="photo" src={a.data.couverture ?? a.data.photos[0]} alt="" loading="lazy" />
           <h2 class="album__titre">
             <a href={lien(lang, `vie-du-labo/${a.id}`)}>{a.data.titre}</a>
-            <AValider si={a.data.a_valider} lang={lang} />
           </h2>
+          <AValider si={a.data.a_valider} lang={lang} />
           <p class="meta album__meta">
             {quand(a.data.date, a.data.date_texte)}
             {quand(a.data.date, a.data.date_texte) && ' · '}

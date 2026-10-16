@@ -5,7 +5,7 @@ fin: 2027
 financement: Procure
 role: principale
 co_chercheurs: Corentin Montiel
-a_valider: true
+a_valider: "Titre court « Hommes et cancer », résumé et description rédigés par nous : à relire. La photo est une photo d'ambiance du labo."
 phare: true
 ordre: 4
 titre_court: Hommes et cancer

@@ -29,7 +29,8 @@ const Titre = niveau;
     {enCours(d.fin) ? t(lang, 'projets.statut_en_cours') : t(lang, 'projets.statut_termine')} · {periode(d.debut, d.fin)}
   </p>
   <Titre class="carte-projet__titre"><a href={lien(lang, `projets/${slug(p.id)}`)}>{titreCourt(p)}</a></Titre>
-  {d.resume && <p class="carte-projet__resume">{d.resume}<AValider si={d.a_valider} lang={lang} /></p>}
+  {d.resume && <p class="carte-projet__resume">{d.resume}</p>}
+  <AValider si={d.a_valider} lang={lang} />
   <p class="meta carte-projet__financement">{d.financement}</p>
 </article>
 

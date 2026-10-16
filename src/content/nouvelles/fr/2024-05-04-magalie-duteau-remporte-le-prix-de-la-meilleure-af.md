@@ -2,7 +2,7 @@
 titre: Magalie Duteau remporte le prix de la meilleure affiche au congrès de la FKQ
 date: '2024-05-04'
 categorie: distinction
-a_valider: true
+a_valider: "Date et nom du prix déduits du CV : exacts?"
 brouillon: false
 ---
 

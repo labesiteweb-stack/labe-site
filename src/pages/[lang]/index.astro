@@ -38,7 +38,7 @@ const externe = (href: string) => /^https?:/.test(href);
     <div class="tete__titre">
       {d.etiquette && <p class="etiquette">{d.etiquette}</p>}
       <h1 set:html={emphase(d.titre)} />
-      <AValider si={d.a_valider} lang={lang} note="Promesse proposée à la place du nom du labo" />
+      <AValider si={d.a_valider} lang={lang} note="Cette promesse remplace le nom du labo en grand titre (le logo l'affiche déjà). La garder ou la reformuler?" />
     </div>
     <div class="tete__texte">
       {d.accroche && <p class="chapo">{d.accroche}</p>}
@@ -58,12 +58,14 @@ const externe = (href: string) => /^https?:/.test(href);
       fetchpriority="high"
     />
   </figure>
+  <div class="cadre"><AValider si={d.a_valider} lang={lang} note="Photo d'équipe dans le jardin du CRCHUM (2025) : OK pour la publier en tête du site?" /></div>
 
   {
     d.portes.length > 0 && (
       <section class="section section--surface" aria-labelledby="commencer">
         <div class="cadre">
           <h2 id="commencer">{t(lang, 'accueil.commencer')}</h2>
+          <AValider si={d.a_valider} lang={lang} note="Les trois portes d'entrée, rédigées par nous : les bons publics (patients et proches, futurs étudiants, médias et partenaires), les bons textes?" />
           <ul class="portes">
             {d.portes.map((p) => (
               <li class="porte">
@@ -88,6 +90,7 @@ const externe = (href: string) => /^https?:/.test(href);
     <div class="axes__tete">
       <h2 id="axes">{t(lang, 'accueil.axes')}</h2>
       <p class="chapo">{t(lang, 'accueil.axes.intro')}</p>
+      <AValider si={d.a_valider} lang={lang} note="Les quatre axes, rédigés par nous à partir des projets : justes et complets?" />
     </div>
     <ol class="axes">
       {
@@ -127,11 +130,12 @@ const externe = (href: string) => /^https?:/.test(href);
     <div class="cadre labo__grille">
       <div class="labo__image">
         {direction && <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} />}
-        {direction && <AValider si={direction.data.a_valider} lang={lang} note="Portrait présumé d'Isabelle Doré" />}
+        {direction && <AValider si={direction.data.a_valider} lang={lang} note="Ce portrait est-il bien celui d'Isabelle? Lequel préfère-t-elle parmi ceux de la séance de 2025?" />}
       </div>
       <div class="labo__texte">
         <p class="etiquette">{t(lang, 'labo.titre')}</p>
         <h2 id="labo">{blocLabo?.titre ?? t(lang, 'labo.titre')}</h2>
+        <AValider si={d.a_valider} lang={lang} note="Ce titre et ces deux paragraphes sont rédigés par nous : à relire." />
         <div class="labo__intro"><Content /></div>
         {blocLabo && <p class="labo__suite">{blocLabo.texte}</p>}
         <div class="labo__liens">

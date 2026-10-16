@@ -19,6 +19,10 @@ const texte = () => z.preprocess(vide, z.string().optional());
 const url = () => z.preprocess(vide, z.string().url().optional());
 const date = () => z.preprocess(vide, z.coerce.date().optional());
 
+// « À valider » : un texte qui dit quoi valider (affiché sur l'aperçu seulement). Vide = rien à valider.
+// L'ancienne valeur oui/non reste acceptée.
+const aValider = z.preprocess((v) => v ?? false, z.union([z.boolean(), z.string()]));
+
 const equipe = defineCollection({
   loader: glob({ pattern: md, base: './src/content/equipe' }),
   schema: z.object({
@@ -34,7 +38,7 @@ const equipe = defineCollection({
     photo: texte(),
     // Cadrage du portrait carré : quelle partie de la photo garder.
     cadrage: z.enum(['haut', 'centre', 'bas']).default('haut'),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     // Façons dont le nom apparaît dans les listes d'auteurs (ex. « Piché A »), pour le surligner dans les publications.
     nom_publication: z.array(z.string()).default([]),
     ordre: z.number().default(100),
@@ -62,7 +66,7 @@ const projets = defineCollection({
     image: texte(),
     image_alt: texte(),
     ordre: z.number().default(100),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     brouillon: z.boolean().default(false),
   }),
 });
@@ -80,7 +84,7 @@ const publications = defineCollection({
     lien: url(),
     // Langue du titre : sert aux lecteurs d'écran. Vide = détectée automatiquement.
     langue: z.preprocess(vide, z.enum(['fr', 'en']).optional()),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     brouillon: z.boolean().default(false),
   }),
 });
@@ -96,7 +100,7 @@ const nouvelles = defineCollection({
     image: texte(),
     image_alt: texte(),
     lien: url(),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     brouillon: z.boolean().default(false),
   }),
 });
@@ -109,7 +113,7 @@ const medias = defineCollection({
     date: z.coerce.date(),
     date_texte: texte(),
     lien: url(),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     brouillon: z.boolean().default(false),
   }),
 });
@@ -122,7 +126,7 @@ const partenaires = defineCollection({
     lien: url(),
     categorie: z.enum(['affiliation', 'financement', 'partenaire']),
     ordre: z.number().default(100),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
   }),
 });
 
@@ -135,7 +139,7 @@ const galerie = defineCollection({
     description: texte(),
     couverture: texte(),
     photos: z.array(z.string()).default([]),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     brouillon: z.boolean().default(false),
   }),
 });
@@ -148,7 +152,7 @@ const pages = defineCollection({
     accroche: texte(),
     image: texte(),
     image_alt: texte(),
-    a_valider: z.boolean().default(false),
+    a_valider: aValider,
     axes: z.array(z.object({ titre: z.string(), texte: z.string() })).default([]),
     // Accueil : les portes d'entrée par public (patients, étudiants, médias).
     portes: z

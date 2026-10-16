@@ -6,7 +6,7 @@ financement: Université de Montréal, Programme Partenariat
 role: principale
 co_chercheurs: M.-P. Pomey, C. Bémeur
 partenaires: 'Patients partenaires : G. Guay, F. Posteraro, R. Bilodeau'
-a_valider: true
+a_valider: "Description rédigée par nous à partir du titre du CV : à relire et compléter."
 ---
 
 Le projet a cocréé avec des patients partenaires une communauté virtuelle qui favorise le soutien social et les saines habitudes de vie chez les personnes atteintes de cancer, puis en a évalué l'implantation.

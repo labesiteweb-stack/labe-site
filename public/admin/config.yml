@@ -76,7 +76,7 @@ collections:
       filters:
         - { name: distinctions, label: Distinctions, field: categorie, eq: distinction }
         - { name: masquees, label: Masquées du site, field: brouillon, eq: true }
-        - { name: a-valider, label: À valider, field: a_valider, eq: true }
+        - { name: a-valider, label: À valider, field: a_valider, pattern: '.+' }
     media_folder: /public/images/nouvelles
     public_folder: /images/nouvelles
     fields:
@@ -112,7 +112,7 @@ collections:
       - { name: image, label: Image (facultatif), widget: image, required: false, i18n: duplicate, hint: Format paysage. Sans image, la carte affiche l'épinette du logo. }
       - { name: image_alt, label: Description de l'image, widget: string, required: false, i18n: true, hint: "Obligatoire si une image est ajoutée : décrire en une phrase ce qu'on y voit, pour les personnes qui ne la voient pas." }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, i18n: duplicate, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   - name: medias
     label: Médias
@@ -133,7 +133,7 @@ collections:
       - { name: date_texte, label: Date affichée (facultatif), widget: string, required: false, hint: 'Pour une date approximative, par exemple « Été 2023 ».' }
       - { name: lien, label: Lien, widget: string, required: false }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   # ------------------------------------------------------------------ Projets
   - name: projets
@@ -155,7 +155,7 @@ collections:
         - { name: diriges, label: Dirigés par le LABE, field: role, in: [principale, co-principale] }
         - { name: contribue, label: Contribue aussi à, field: role, eq: co-chercheuse }
         - { name: phares, label: Projets phares, field: phare, eq: true }
-        - { name: a-valider, label: À valider, field: a_valider, eq: true }
+        - { name: a-valider, label: À valider, field: a_valider, pattern: '.+' }
     media_folder: /public/images/projets
     public_folder: /images/logos
     fields:
@@ -191,7 +191,7 @@ collections:
       - { name: image_alt, label: Description de la photo, widget: string, required: false, i18n: true, hint: Obligatoire si une photo est ajoutée. }
       - { name: ordre, label: Ordre parmi les projets phares, widget: number, value_type: int, default: 100, required: false, i18n: duplicate, hint: Les plus petits nombres s'affichent en premier. }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, i18n: duplicate, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   - name: publications
     label: Publications
@@ -238,7 +238,7 @@ collections:
           - { label: Anglais, value: en }
         hint: Laisser vide pour une détection automatique. Sert aux lecteurs d'écran.
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   # ------------------------------------------------------------------ Équipe
   - name: equipe
@@ -322,7 +322,7 @@ collections:
         hint: "Format « Nom Initiales », par exemple « Piché A ». Sert à surligner la personne dans les publications."
       - { name: ordre, label: Ordre d'affichage, widget: number, value_type: int, default: 100, i18n: duplicate, hint: Les plus petits nombres s'affichent en premier dans chaque section. }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false, i18n: duplicate }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, i18n: duplicate, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   # ------------------------------------------------------------------ Galerie
   - name: galerie
@@ -347,7 +347,7 @@ collections:
       - { name: photos, label: Photos, widget: image, multiple: true, hint: Plusieurs photos peuvent être choisies d'un coup. L'ordre ici est l'ordre d'affichage. }
       - { name: couverture, label: Photo de couverture (facultatif), widget: image, required: false, hint: "Sinon, la première photo de l'album est utilisée." }
       - { name: brouillon, label: Masquer du site, widget: boolean, default: false, required: false }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   - name: partenaires
     label: Partenaires
@@ -375,7 +375,7 @@ collections:
           - { label: Partenaire, value: partenaire }
       - { name: lien, label: Site web (facultatif), widget: string, required: false }
       - { name: ordre, label: Ordre d'affichage, widget: number, value_type: int, default: 100 }
-      - { name: a_valider, label: À valider, widget: boolean, default: false, required: false }
+      - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
 
   # ------------------------------------------------------------------ Pages fixes
   - name: pages
@@ -428,7 +428,7 @@ collections:
             fields:
               - { name: titre, label: Titre, widget: string }
               - { name: texte, label: Texte, widget: text }
-          - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+          - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, i18n: duplicate, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
       - name: le-labo
         label: Le labo
         file: src/content/pages/{{locale}}/le-labo.md
@@ -454,7 +454,7 @@ collections:
             fields:
               - { name: titre, label: Titre, widget: string }
               - { name: texte, label: Texte, widget: text }
-          - { name: a_valider, label: À valider, widget: boolean, default: false, required: false, i18n: duplicate }
+          - { name: a_valider, label: "À valider (aperçu seulement)", widget: text, required: false, i18n: duplicate, hint: "Écrire précisément ce qu'il faut vérifier. Ce texte s'affiche dans l'étiquette jaune de l'aperçu, jamais sur le site en ligne. Vider le champ une fois le point validé." }
       - name: contact
         label: Nous joindre
         file: src/content/pages/{{locale}}/contact.md

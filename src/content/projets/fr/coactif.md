@@ -8,7 +8,7 @@ co_chercheurs: S. Lambert, C. Gillis, É. Riesco, S. Dufresne, M. Pavic, V. Samo
 partenaires: 'Collaboratrice : I. Brisson. Patients partenaires : R. Bilodeau, A.-M. Dubois, V. Dufour'
 logo: /images/logos/coactif.png
 lien: https://oncopole.ca/projets-finances/co-actif-evaluation-de-implantabilite-et-des-effets-preliminaires-dun-programme-de-telepreadaptation-multimodale-en-groupe-pour-les-patients-atteints-de-cancer-et-les-proches-aidants/
-a_valider: true
+a_valider: "La description est au passé (programme implanté) : toujours exacte? Le bouton du projet doit-il mener à coactif.ca ou à la fiche de l'Oncopole?"
 phare: true
 ordre: 1
 titre_court: coACTIF

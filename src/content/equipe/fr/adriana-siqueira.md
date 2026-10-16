@@ -9,5 +9,5 @@ nom_publication:
 - Siqueira AUB
 - de Siqueira AUB
 ordre: 43
-a_valider: true
+a_valider: "Passée aux diplômées selon le CV de septembre 2026 : exact? Orthographe du nom à confirmer."
 ---

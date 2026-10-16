@@ -6,4 +6,5 @@ financement: Ministère de la Santé et des Services sociaux (MSSS), Direction n
 role: co-principale
 chercheur_principal: J. O'Loughlin et I. Doré (co-chercheuses principales)
 co_chercheurs: M.-P. Sylvestre, K. Maximova
+a_valider: "Aucune description : à rédiger (seul le titre du CV est connu)."
 ---

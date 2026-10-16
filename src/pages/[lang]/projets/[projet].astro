@@ -48,8 +48,9 @@ const details = [
           <li class="pastille pastille--neutre">{periode(d.debut, d.fin)}</li>
           <li class="pastille pastille--neutre">{t(lang, `projets.${d.role}`)}</li>
         </ul>
-        <h1 class:list={{ 'fiche__h1--long': !aTitreCourt }}>{titreCourt(p)}<AValider si={d.a_valider} lang={lang} /></h1>
+        <h1 class:list={{ 'fiche__h1--long': !aTitreCourt }}>{titreCourt(p)}</h1>
         {aTitreCourt && <p class="fiche__complet">{d.titre}</p>}
+        <AValider si={d.a_valider} lang={lang} />
       </div>
       {
         (d.logo || d.lien) && (

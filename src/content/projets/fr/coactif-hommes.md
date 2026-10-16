@@ -6,7 +6,7 @@ financement: Réseau de recherche en intervention en sciences infirmières du Qu
 role: principale
 co_chercheurs: É. Riesco, S. Lambert, O. Ferlatte
 partenaires: 'Cliniciens : F. Saad, G. Bastarache. Patient partenaire : A. Myre. Étudiants : C. Montiel, A. Piché'
-a_valider: true
+a_valider: "Description rédigée par nous à partir du titre du CV : à relire et compléter."
 ---
 
 Le projet adapte le programme coACTIF aux besoins et aux préférences des hommes touchés par le cancer, patients comme proches aidants, en portant une attention particulière aux hommes issus de la diversité (de genre, sexuelle, culturelle).

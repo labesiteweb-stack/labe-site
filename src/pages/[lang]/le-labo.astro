@@ -33,7 +33,8 @@ const albums = (await publiees('galerie'))
     </nav>
     {d.etiquette && <p class="etiquette">{d.etiquette}</p>}
     <h1>{d.titre}</h1>
-    {d.accroche && <p class="chapo">{d.accroche}<AValider si={d.a_valider} lang={lang} note="Textes rédigés à partir du CV" /></p>}
+    {d.accroche && <p class="chapo">{d.accroche}</p>}
+    <AValider si={d.a_valider} lang={lang} note="Textes de cette page rédigés par nous à partir du CV (mission, façon de travailler, biographie d'Isabelle) : justes et à jour?" />
   </header>
 
   <section class="cadre mission" id="mission">
@@ -81,7 +82,7 @@ const albums = (await publiees('galerie'))
       <section class="cadre direction" id="direction" aria-labelledby="direction-titre">
         <div class="direction__image">
           <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} />
-          <AValider si={direction.data.a_valider} lang={lang} note="Portrait présumé" />
+          <AValider si={direction.data.a_valider} lang={lang} note="Ce portrait est-il bien celui d'Isabelle? Lequel préfère-t-elle parmi ceux de la séance de 2025?" />
         </div>
         <div class="direction__texte">
           <p class="etiquette">{t(lang, 'labo.direction')}</p>

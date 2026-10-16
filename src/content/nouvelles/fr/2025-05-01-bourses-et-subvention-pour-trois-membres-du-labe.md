@@ -3,7 +3,7 @@ titre: Bourses et subvention pour trois membres du LABE
 date: '2025-05-01'
 date_texte: Mai 2025
 categorie: distinction
-a_valider: true
+a_valider: "Date approximative (affichée : mai 2025) : la bonne date?"
 brouillon: false
 ---
 

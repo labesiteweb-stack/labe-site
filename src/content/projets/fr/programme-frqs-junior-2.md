@@ -5,7 +5,7 @@ fin: 2029
 financement: Fonds de recherche du Québec – Santé (FRQS), programme Chercheuse-boursière Junior 2
 role: principale
 lien: https://doi.org/10.69777/367051
-a_valider: true
+a_valider: "Titre court « Santé mentale en contexte réel », résumé et description rédigés par nous : à relire. La photo est une photo d'ambiance du labo."
 phare: true
 ordre: 5
 titre_court: Santé mentale en contexte réel

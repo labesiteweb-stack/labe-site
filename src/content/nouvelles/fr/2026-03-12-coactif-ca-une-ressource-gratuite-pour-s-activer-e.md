@@ -2,7 +2,7 @@
 titre: coACTIF.ca, une ressource gratuite pour s'activer et s'informer dès le diagnostic de cancer
 date: '2026-03-12'
 categorie: nouvelle
-a_valider: true
+a_valider: "Nouvelle ajoutée par nous à partir du CV : faits et date exacts? Une photo?"
 brouillon: false
 ---
 
