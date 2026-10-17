@@ -16,7 +16,7 @@ const projetsSansPage = readdirSync(dossierProjets)
 export default defineConfig({
   site: SITE,
   trailingSlash: 'ignore',
-  integrations: [sitemap({ filter: (page) => !projetsSansPage.some((c) => page.endsWith(c)) })],
+  integrations: [sitemap({ filter: (page) => !page.endsWith('/notes/') && !projetsSansPage.some((c) => page.endsWith(c)) })],
   i18n: {
     // Ajouter 'en' ici le jour où la version anglaise est prête.
     locales: ['fr'],

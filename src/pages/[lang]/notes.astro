@@ -1,0 +1,301 @@
+---
+/*
+  « Toutes les notes » : le tableau des notes laissées avec le mode Commenter.
+  Page d'aperçu seulement : elle n'est pas construite pour le site en ligne.
+*/
+import Base from '../../layouts/Base.astro';
+import { LANGUES, t, lien } from '../../i18n/ui';
+import { APERCU } from '../../lib/contenu';
+
+export function getStaticPaths() {
+  return APERCU ? LANGUES.map((lang) => ({ params: { lang } })) : [];
+}
+
+const { lang } = Astro.params;
+---
+
+<Base lang={lang} titre="Toutes les notes">
+  <header class="cadre entete-page">
+    <nav class="fil-ariane" aria-label={t(lang, 'nav.fil')}>
+      <ol>
+        <li><a href={lien(lang)}>{t(lang, 'nav.accueil')}</a></li>
+        <li aria-current="page">Toutes les notes</li>
+      </ol>
+    </nav>
+    <h1>Toutes les notes</h1>
+    <p class="chapo">
+      Les notes laissées sur l'aperçu avec le bouton « Commenter ». Cliquer sur une page ouvre la note à son emplacement. Cette page
+      n'existe pas sur le site en ligne.
+    </p>
+  </header>
+
+  <section class="cadre notes" aria-label="Tableau des notes">
+    <div class="notes__barre" data-barre hidden>
+      <div class="filtres" role="group" aria-label="Statut">
+        <button class="filtre" type="button" aria-pressed="true" data-statut="a-faire">À faire <span data-n="a-faire"></span></button>
+        <button class="filtre" type="button" aria-pressed="false" data-statut="fait">Faites <span data-n="fait"></span></button>
+        <button class="filtre" type="button" aria-pressed="false" data-statut="">Toutes <span data-n="toutes"></span></button>
+      </div>
+      <div class="champ champ--ligne">
+        <label for="filtre-page">Page</label>
+        <select id="filtre-page" data-filtre-page>
+          <option value="">Toutes les pages</option>
+        </select>
+      </div>
+      <button class="bouton bouton--contour" type="button" data-exporter>Télécharger pour Excel</button>
+    </div>
+    <p class="notes__etat" data-etat role="status">Chargement des notes…</p>
+    <div class="notes__defile" data-defile hidden>
+      <table class="notes__table">
+        <caption class="visuellement-cache">Notes de révision</caption>
+        <thead>
+          <tr>
+            <th scope="col">N°</th>
+            <th scope="col">Page</th>
+            <th scope="col">Élément</th>
+            <th scope="col">Note</th>
+            <th scope="col">Auteur</th>
+            <th scope="col">Date</th>
+            <th scope="col">Fait</th>
+          </tr>
+        </thead>
+        <tbody data-corps></tbody>
+      </table>
+    </div>
+  </section>
+</Base>
+
+<script>
+  type Reponse = { auteur: string; texte: string; date: string };
+  type Note = {
+    id: string;
+    numero: number;
+    page: string;
+    titre: string;
+    apercu: string;
+    libelle: string;
+    note: string;
+    auteur: string;
+    date: string;
+    statut: 'a-faire' | 'fait';
+    reponses: Reponse[];
+  };
+
+  const corps = document.querySelector<HTMLElement>('[data-corps]')!;
+  const etat = document.querySelector<HTMLElement>('[data-etat]')!;
+  const barre = document.querySelector<HTMLElement>('[data-barre]')!;
+  const defile = document.querySelector<HTMLElement>('[data-defile]')!;
+  const choixPage = document.querySelector<HTMLSelectElement>('[data-filtre-page]')!;
+  const boutonsStatut = [...document.querySelectorAll<HTMLButtonElement>('[data-statut]')];
+  let notes: Note[] = [];
+  let statut = 'a-faire';
+
+  const h = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string | undefined> = {}, ...enfants: (Node | string | null)[]) => {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) if (v !== undefined) k === 'class' ? (el.className = v) : el.setAttribute(k, v);
+    for (const e of enfants) if (e !== null) el.append(e);
+    return el;
+  };
+  const quand = (iso: string) => new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+  const nomPage = (n: Note) => (n.titre || n.page).replace(/\s*\|\s*LABE$/, '').replace(/^LABE,.*$/, 'Accueil');
+
+  function afficher() {
+    const page = choixPage.value;
+    const liste = notes.filter((n) => (!statut || n.statut === statut) && (!page || n.page === page));
+    corps.replaceChildren();
+    for (const n of liste) {
+      const caseFait = h('input', { type: 'checkbox', 'aria-label': `Note ${n.numero} faite` }) as HTMLInputElement;
+      caseFait.checked = n.statut === 'fait';
+      caseFait.addEventListener('change', async () => {
+        caseFait.disabled = true;
+        try {
+          const r = await fetch('/api/notes', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'statut', id: n.id, statut: caseFait.checked ? 'fait' : 'a-faire' }),
+          });
+          if (!r.ok) throw new Error();
+          const d = await r.json();
+          notes = notes.map((x) => (x.id === n.id ? d.note : x));
+          compter();
+          afficher();
+        } catch {
+          caseFait.checked = !caseFait.checked;
+          caseFait.disabled = false;
+          etat.textContent = 'Le changement n’a pas pu être enregistré. Réessayer.';
+        }
+      });
+      const cellNote = h('td', { class: 'notes__note' }, h('p', {}, n.note));
+      if (n.reponses.length) {
+        const det = h('details', {}, h('summary', {}, `${n.reponses.length} réponse${n.reponses.length > 1 ? 's' : ''}`));
+        for (const r of n.reponses) det.append(h('p', { class: 'notes__reponse' }, h('strong', {}, r.auteur), ` (${quand(r.date)}) : ${r.texte}`));
+        cellNote.append(det);
+      }
+      corps.append(
+        h(
+          'tr',
+          { class: n.statut === 'fait' ? 'est-fait' : undefined },
+          h('td', { class: 'notes__num' }, String(n.numero)),
+          h('td', {}, h('a', { href: `${n.page}?note=${encodeURIComponent(n.id)}` }, nomPage(n))),
+          h('td', { class: 'notes__element' }, h('strong', {}, n.libelle || 'Élément'), h('br'), n.apercu.slice(0, 120)),
+          cellNote,
+          h('td', {}, n.auteur),
+          h('td', { class: 'notes__date' }, quand(n.date)),
+          h('td', { class: 'notes__fait' }, caseFait),
+        ),
+      );
+    }
+    etat.textContent = liste.length ? '' : notes.length ? 'Aucune note pour ce filtre.' : 'Aucune note pour l’instant.';
+    defile.hidden = liste.length === 0;
+  }
+
+  function compter() {
+    const n = (s: string) => notes.filter((x) => x.statut === s).length;
+    document.querySelector('[data-n="a-faire"]')!.textContent = String(n('a-faire'));
+    document.querySelector('[data-n="fait"]')!.textContent = String(n('fait'));
+    document.querySelector('[data-n="toutes"]')!.textContent = String(notes.length);
+  }
+
+  function remplirPages() {
+    const pages = new Map<string, string>();
+    for (const n of notes) if (!pages.has(n.page)) pages.set(n.page, nomPage(n));
+    const actuelle = choixPage.value;
+    choixPage.replaceChildren(h('option', { value: '' }, 'Toutes les pages'));
+    for (const [p, nom] of [...pages].sort((a, b) => a[1].localeCompare(b[1], 'fr'))) choixPage.append(h('option', { value: p }, nom));
+    choixPage.value = pages.has(actuelle) ? actuelle : '';
+  }
+
+  boutonsStatut.forEach((b) =>
+    b.addEventListener('click', () => {
+      statut = b.dataset.statut ?? '';
+      boutonsStatut.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      afficher();
+    }),
+  );
+  choixPage.addEventListener('change', afficher);
+
+  // Export : CSV séparé par des points-virgules, avec BOM, pour qu'Excel en français l'ouvre directement.
+  document.querySelector('[data-exporter]')!.addEventListener('click', () => {
+    const cellule = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+    const lignes = [
+      ['N°', 'Page', 'Adresse', 'Élément', 'Texte de l’élément', 'Note', 'Auteur', 'Date', 'Statut', 'Réponses'],
+      ...notes.map((n) => [
+        n.numero,
+        nomPage(n),
+        location.origin + n.page,
+        n.libelle,
+        n.apercu,
+        n.note,
+        n.auteur,
+        quand(n.date),
+        n.statut === 'fait' ? 'Fait' : 'À faire',
+        n.reponses.map((r) => `${r.auteur} (${quand(r.date)}) : ${r.texte}`).join(' | '),
+      ]),
+    ];
+    const csv = '﻿' + lignes.map((l) => l.map(cellule).join(';')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `notes-site-labe-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  (async () => {
+    try {
+      const r = await fetch('/api/notes');
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.erreur === 'stockage' ? 'stockage' : 'autre');
+      notes = d.notes ?? [];
+      barre.hidden = false;
+      remplirPages();
+      compter();
+      afficher();
+    } catch (e) {
+      etat.textContent =
+        (e as Error).message === 'stockage'
+          ? 'Les notes ne sont pas encore activées : la base de données doit être reliée au projet dans Vercel.'
+          : 'Les notes sont momentanément indisponibles. Recharger la page dans un instant.';
+    }
+  })();
+</script>
+
+<style>
+  .notes__barre {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pas-4) var(--pas-5);
+    margin-bottom: var(--pas-5);
+  }
+  .notes__barre .bouton {
+    margin-left: auto;
+  }
+  .notes__etat:empty {
+    display: none;
+  }
+  .notes__defile {
+    overflow-x: auto;
+  }
+  .notes__table {
+    width: 100%;
+    min-width: 52rem;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .notes__table th,
+  .notes__table td {
+    padding: var(--pas-3);
+    border-bottom: 1px solid var(--c-trait);
+    text-align: left;
+    vertical-align: top;
+  }
+  .notes__table thead th {
+    border-bottom: 2px solid var(--c-bordure);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--c-texte-2);
+  }
+  .notes__num {
+    font-weight: 700;
+  }
+  .notes__element {
+    max-width: 16rem;
+    color: var(--c-texte-2);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+  .notes__note {
+    max-width: 28rem;
+  }
+  .notes__note p {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+  .notes__note details {
+    margin-top: var(--pas-2);
+    font-size: 0.875rem;
+  }
+  .notes__reponse {
+    margin: var(--pas-1) 0 0;
+    color: var(--c-texte-2);
+  }
+  .notes__date {
+    white-space: nowrap;
+    color: var(--c-texte-2);
+    font-size: 0.875rem;
+  }
+  .notes__fait input {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--c-action);
+  }
+  .est-fait td {
+    color: var(--c-texte-2);
+  }
+  .est-fait .notes__note p {
+    text-decoration: line-through;
+  }
+</style>

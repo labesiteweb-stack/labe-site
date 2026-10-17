@@ -1,0 +1,887 @@
+---
+/*
+  Mode « Commenter » de l'aperçu : on clique sur n'importe quel élément du site pour y épingler une note.
+  Rendu seulement sur la version d'aperçu (voir Base.astro). Les notes passent par /api/notes
+  et sont gardées dans la base Redis du projet Vercel, jamais dans le dépôt.
+*/
+import { lien } from '../i18n/ui';
+
+interface Props {
+  lang: string;
+}
+const { lang } = Astro.props;
+---
+
+<div class="cm-commandes" data-cm-ui data-cm-commandes data-page-notes={lien(lang, 'notes')}>
+  <button type="button" class="cm-bouton" aria-pressed="false" data-cm-basculer>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+      ><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg
+    >
+    Commenter
+  </button>
+  <a class="cm-lien" href={lien(lang, 'notes')} data-cm-lien>Toutes les notes</a>
+  <span class="cm-etat" data-cm-etat role="status"></span>
+</div>
+
+<script>
+  type Reponse = { auteur: string; texte: string; date: string };
+  type Note = {
+    id: string;
+    numero: number;
+    page: string;
+    titre: string;
+    selecteur: string;
+    apercu: string;
+    libelle: string;
+    x: number;
+    y: number;
+    note: string;
+    auteur: string;
+    date: string;
+    statut: 'a-faire' | 'fait';
+    reponses: Reponse[];
+  };
+
+  const API = '/api/notes';
+  const CLE_AUTEUR = 'labe-notes-auteur';
+  const commandes = document.querySelector<HTMLElement>('[data-cm-commandes]');
+
+  if (commandes) {
+    const bascule = commandes.querySelector<HTMLButtonElement>('[data-cm-basculer]')!;
+    const lienNotes = commandes.querySelector<HTMLAnchorElement>('[data-cm-lien]')!;
+    const etat = commandes.querySelector<HTMLElement>('[data-cm-etat]')!;
+
+    /* ------------------------------------------------------------ outils */
+    const h = <K extends keyof HTMLElementTagNameMap>(
+      tag: K,
+      attrs: Record<string, string | boolean | undefined> = {},
+      ...enfants: (Node | string | null | undefined | false)[]
+    ) => {
+      const el = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === undefined || v === false) continue;
+        if (k === 'class') el.className = String(v);
+        else el.setAttribute(k, v === true ? '' : String(v));
+      }
+      for (const e of enfants) if (e !== null && e !== undefined && e !== false) el.append(e);
+      return el;
+    };
+    const lireAuteur = () => {
+      try {
+        return localStorage.getItem(CLE_AUTEUR) ?? '';
+      } catch {
+        return '';
+      }
+    };
+    const garderAuteur = (v: string) => {
+      try {
+        localStorage.setItem(CLE_AUTEUR, v);
+      } catch {}
+    };
+    const quand = (iso: string) => {
+      try {
+        return new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+      } catch {
+        return iso.slice(0, 10);
+      }
+    };
+    const normal = (s: string) => s.replace(/\s+/g, ' ').trim();
+    const cheminPage = () => (location.pathname.endsWith('/') ? location.pathname : `${location.pathname}/`);
+
+    /* ------------------------------------------------------------ API */
+    let disponible = true;
+    async function appeler(methode: 'GET' | 'POST', corps?: unknown) {
+      const r = await fetch(API, {
+        method: methode,
+        headers: corps ? { 'content-type': 'application/json' } : undefined,
+        body: corps ? JSON.stringify(corps) : undefined,
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const err = new Error(d.message || 'Erreur de connexion aux notes.') as Error & { code?: string };
+        err.code = d.erreur;
+        throw err;
+      }
+      return d;
+    }
+
+    /* ------------------------------------------------------------ éléments du site */
+    const SIGNIFIANTS =
+      'a, button, summary, img, video, h1, h2, h3, h4, h5, h6, p, li, td, th, dt, dd, figcaption, label, select, input, textarea, blockquote, cite, time, .pastille, .etiquette, .filtre, .a-valider';
+
+    const estInterface = (el: Element | null) => !el || Boolean(el.closest('[data-cm-ui], .apercu, .evitement'));
+
+    function cibleDepuis(el: Element | null): Element | null {
+      if (!el || estInterface(el) || el === document.documentElement || el === document.body) return null;
+      let c = el.closest(SIGNIFIANTS) ?? el;
+      if (c instanceof SVGElement) c = c.closest('a, button') ?? c.closest('svg') ?? c;
+      if (c.tagName === 'PICTURE') c = c.querySelector('img') ?? c;
+      return c;
+    }
+
+    function selecteur(el: Element): string {
+      const parts: string[] = [];
+      let n: Element | null = el;
+      while (n && n !== document.body && n !== document.documentElement) {
+        if (n.id && document.querySelectorAll(`#${CSS.escape(n.id)}`).length === 1) {
+          parts.unshift(`#${CSS.escape(n.id)}`);
+          return parts.join(' > ');
+        }
+        const tag = n.tagName.toLowerCase();
+        const freres = n.parentElement ? [...n.parentElement.children].filter((x) => x.tagName === n!.tagName) : [n];
+        parts.unshift(freres.length > 1 ? `${tag}:nth-of-type(${freres.indexOf(n) + 1})` : tag);
+        n = n.parentElement;
+      }
+      return `body > ${parts.join(' > ')}`;
+    }
+
+    function apercu(el: Element): string {
+      if (el instanceof HTMLImageElement) return `Image : ${el.alt || el.src.split('/').pop() || ''}`.slice(0, 160);
+      const t = normal(el.textContent ?? '');
+      return (t || el.getAttribute('aria-label') || el.tagName.toLowerCase()).slice(0, 160);
+    }
+
+    const LIBELLES: Record<string, string> = {
+      H1: 'Titre', H2: 'Titre', H3: 'Titre', H4: 'Titre', H5: 'Titre', H6: 'Titre', P: 'Paragraphe', A: 'Lien',
+      BUTTON: 'Bouton', SUMMARY: 'Bouton', IMG: 'Image', VIDEO: 'Vidéo', LI: 'Élément de liste', TD: 'Cellule',
+      TH: 'Cellule', DT: 'Libellé', DD: 'Valeur', FIGCAPTION: 'Légende', LABEL: 'Libellé', SELECT: 'Liste de choix',
+      INPUT: 'Champ', TEXTAREA: 'Champ', BLOCKQUOTE: 'Citation', CITE: 'Référence', TIME: 'Date', NAV: 'Menu',
+      HEADER: 'En-tête', FOOTER: 'Bas de page', UL: 'Liste', OL: 'Liste', TABLE: 'Tableau', FIGURE: 'Image',
+      SECTION: 'Section', ARTICLE: 'Carte', ASIDE: 'Encadré', FORM: 'Formulaire', svg: 'Icône',
+    };
+    const libelle = (el: Element) => LIBELLES[el.tagName] ?? 'Bloc';
+
+    function retrouver(n: Note): Element | null {
+      let el: Element | null = null;
+      try {
+        el = n.selecteur ? document.querySelector(n.selecteur) : null;
+      } catch {}
+      const debut = normal(n.apercu).slice(0, 50).toLowerCase();
+      const correspond = (e: Element) => apercu(e).toLowerCase().startsWith(debut);
+      if (el && (!debut || correspond(el))) return el;
+      // L'élément a bougé (contenu modifié) : on le cherche par son texte parmi les éléments du même type.
+      const tag = (n.selecteur.split('>').pop() ?? '').trim().split(/[:.#\[]/)[0] || '*';
+      try {
+        const trouve = [...document.querySelectorAll(tag)].find((e) => !estInterface(e) && debut && correspond(e));
+        if (trouve) return trouve;
+      } catch {}
+      return el;
+    }
+
+    const visible = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+    };
+
+    /* ------------------------------------------------------------ couches d'affichage */
+    const couche = h('div', { class: 'cm-couche', 'data-cm-ui': true });
+    const cadre = h('div', { class: 'cm-cadre', 'aria-hidden': 'true', hidden: true });
+    const consigne = h(
+      'div',
+      { class: 'cm-consigne', 'data-cm-ui': true, role: 'status', hidden: true },
+      'Cliquez sur l’élément à commenter. Échap pour terminer.',
+    );
+    document.body.append(couche, cadre, consigne);
+
+    let notes: Note[] = [];
+    let actif = false;
+    let survol: Element | null = null;
+    let bulle: HTMLElement | null = null;
+    let bulleSource: HTMLElement | null = null;
+    const pastilles = new Map<string, { btn: HTMLButtonElement; note: Note }>();
+
+    function majCompteur() {
+      const aFaire = notes.filter((n) => n.statut === 'a-faire').length;
+      lienNotes.textContent = notes.length ? `Toutes les notes (${aFaire} à faire / ${notes.length})` : 'Toutes les notes';
+    }
+
+    /* ------------------------------------------------------------ pastilles */
+    function dessinerPastilles() {
+      couche.replaceChildren();
+      pastilles.clear();
+      for (const n of notes.filter((x) => x.page === cheminPage())) {
+        const btn = h(
+          'button',
+          {
+            type: 'button',
+            class: `cm-pastille${n.statut === 'fait' ? ' cm-pastille--fait' : ''}`,
+            'aria-label': `Note ${n.numero}${n.statut === 'fait' ? ' (faite)' : ''}, de ${n.auteur} : ${n.note.slice(0, 80)}`,
+            'aria-haspopup': 'dialog',
+          },
+          n.statut === 'fait' ? '✓' : String(n.numero),
+        ) as HTMLButtonElement;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          ouvrirNote(n, btn);
+        });
+        couche.append(btn);
+        pastilles.set(n.id, { btn, note: n });
+      }
+      placer();
+    }
+
+    let enAttente = false;
+    function placer() {
+      if (enAttente) return;
+      enAttente = true;
+      requestAnimationFrame(() => {
+        enAttente = false;
+        const occupees: { x: number; y: number }[] = [];
+        for (const { btn, note } of pastilles.values()) {
+          const el = retrouver(note);
+          if (!el || !visible(el)) {
+            btn.hidden = true;
+            continue;
+          }
+          const r = el.getBoundingClientRect();
+          let x = r.left + window.scrollX + note.x * r.width;
+          let y = r.top + window.scrollY + note.y * r.height;
+          // Évite que deux pastilles se recouvrent exactement.
+          while (occupees.some((o) => Math.abs(o.x - x) < 22 && Math.abs(o.y - y) < 22)) x += 24;
+          occupees.push({ x, y });
+          btn.hidden = false;
+          btn.style.left = `${x}px`;
+          btn.style.top = `${y}px`;
+        }
+        if (bulle && bulleSource && !bulle.classList.contains('cm-bulle--feuille')) positionner(bulle, bulleSource);
+      });
+    }
+
+    /* ------------------------------------------------------------ bulle (formulaire ou fil) */
+    function fermerBulle(rendreFocus = true) {
+      if (!bulle) return;
+      bulle.remove();
+      bulle = null;
+      consigne.hidden = !actif;
+      cadre.hidden = !actif || !survol;
+      if (rendreFocus && bulleSource?.isConnected && bulleSource.tagName === 'BUTTON') bulleSource.focus({ preventScroll: true });
+      bulleSource = null;
+      if (fige) {
+        fige = null;
+        if (actif && survol) montrerCadre(survol);
+      }
+    }
+
+    function positionner(b: HTMLElement, ancre: Element) {
+      if (window.innerWidth < 640) {
+        b.classList.add('cm-bulle--feuille');
+        return;
+      }
+      b.classList.remove('cm-bulle--feuille');
+      const r = ancre.getBoundingClientRect();
+      const largeur = b.offsetWidth || 340;
+      let left = r.left + window.scrollX;
+      left = Math.min(left, window.scrollX + document.documentElement.clientWidth - largeur - 12);
+      left = Math.max(left, window.scrollX + 12);
+      let top = r.bottom + window.scrollY + 10;
+      const hauteur = b.offsetHeight || 260;
+      if (r.bottom + hauteur + 20 > window.innerHeight && r.top > hauteur + 20) top = r.top + window.scrollY - hauteur - 10;
+      b.style.left = `${left}px`;
+      b.style.top = `${top}px`;
+    }
+
+    function nouvelleBulle(titre: string, ancre: HTMLElement | Element, source: HTMLElement | null) {
+      fermerBulle(false);
+      const fermer = h('button', { type: 'button', class: 'cm-fermer', 'aria-label': 'Fermer' }, '×');
+      fermer.addEventListener('click', () => fermerBulle());
+      const idTitre = `cm-titre-${Date.now()}`;
+      bulle = h(
+        'div',
+        { class: 'cm-bulle', 'data-cm-ui': true, role: 'dialog', 'aria-labelledby': idTitre },
+        h('div', { class: 'cm-bulle__tete' }, h('p', { class: 'cm-bulle__titre', id: idTitre }, titre), fermer),
+      );
+      bulle.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          fermerBulle();
+        }
+      });
+      if (window.innerWidth < 640) bulle.classList.add('cm-bulle--feuille');
+      document.body.append(bulle);
+      consigne.hidden = true;
+      bulleSource = source;
+      requestAnimationFrame(() => bulle && positionner(bulle, ancre));
+      return bulle;
+    }
+
+    const message = (zone: HTMLElement, texte: string) => {
+      zone.textContent = texte;
+      zone.hidden = !texte;
+    };
+
+    function champAuteur(id: string) {
+      const input = h('input', { id, type: 'text', autocomplete: 'given-name', maxlength: '60', value: lireAuteur(), 'aria-required': 'true' }) as HTMLInputElement;
+      return { input, bloc: h('div', { class: 'cm-champ' }, h('label', { for: id }, 'Votre prénom'), input) };
+    }
+
+    let fige: Element | null = null;
+    function ouvrirFormulaire(el: Element, x: number, y: number) {
+      let cible = el;
+      fige = cible;
+      montrerCadre(cible);
+      const b = nouvelleBulle('Nouvelle note', cible, null);
+      const quoi = h('p', { class: 'cm-quoi' });
+      const majQuoi = () => {
+        quoi.replaceChildren(h('strong', {}, libelle(cible)), ` : « ${apercu(cible).slice(0, 90)}${apercu(cible).length > 90 ? '…' : ''} »`);
+      };
+      majQuoi();
+      const elargir = h('button', { type: 'button', class: 'cm-petit' }, 'Sélectionner le bloc autour');
+      elargir.addEventListener('click', () => {
+        const p = cible.parentElement;
+        if (p && p !== document.body && p !== document.documentElement && !estInterface(p)) {
+          cible = p;
+          fige = p;
+          x = 0.02;
+          y = 0.02;
+          montrerCadre(p);
+          majQuoi();
+          positionner(b, p);
+        }
+      });
+      const zone = h('textarea', { id: 'cm-note', rows: '4', maxlength: '4000', 'aria-required': 'true' }) as HTMLTextAreaElement;
+      const auteur = champAuteur('cm-auteur');
+      const piege = h('input', { type: 'text', name: 'site_web', tabindex: '-1', autocomplete: 'off', class: 'cm-piege', 'aria-hidden': 'true' }) as HTMLInputElement;
+      const erreur = h('p', { class: 'cm-erreur', role: 'alert', hidden: true });
+      const enregistrer = h('button', { type: 'submit', class: 'cm-principal' }, 'Enregistrer');
+      const annuler = h('button', { type: 'button', class: 'cm-secondaire' }, 'Annuler');
+      annuler.addEventListener('click', () => fermerBulle());
+      const form = h(
+        'form',
+        { class: 'cm-form', novalidate: true },
+        quoi,
+        elargir,
+        h('div', { class: 'cm-champ' }, h('label', { for: 'cm-note' }, 'Votre note : quoi changer, ajouter ou retirer'), zone),
+        auteur.bloc,
+        piege,
+        erreur,
+        h('div', { class: 'cm-actions' }, enregistrer, annuler),
+      );
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!zone.value.trim()) return message(erreur, 'Écrivez la note avant d’enregistrer.');
+        if (!auteur.input.value.trim()) return message(erreur, 'Indiquez votre prénom, pour qu’on sache qui a écrit la note.');
+        garderAuteur(auteur.input.value.trim());
+        enregistrer.setAttribute('disabled', '');
+        try {
+          const d = await appeler('POST', {
+            action: 'creer',
+            page: cheminPage(),
+            titre: document.title,
+            selecteur: selecteur(cible),
+            apercu: apercu(cible),
+            libelle: libelle(cible),
+            x,
+            y,
+            note: zone.value,
+            auteur: auteur.input.value,
+            piege: piege.value,
+          });
+          notes.push(d.note);
+          majCompteur();
+          fermerBulle(false);
+          dessinerPastilles();
+          annoncer(`Note ${d.note.numero} enregistrée.`);
+        } catch (err) {
+          enregistrer.removeAttribute('disabled');
+          message(erreur, (err as Error).message);
+        }
+      });
+      b.append(form);
+      zone.focus({ preventScroll: true });
+    }
+
+    function ouvrirNote(n: Note, source: HTMLButtonElement) {
+      const el = retrouver(n);
+      const b = nouvelleBulle(`Note ${n.numero} · ${n.statut === 'fait' ? 'Faite' : 'À faire'}`, source, source);
+      const fil = h('div', { class: 'cm-fil' });
+      const message1 = h(
+        'div',
+        { class: 'cm-message' },
+        h('p', { class: 'cm-meta' }, h('strong', {}, n.auteur), ` · ${quand(n.date)}`),
+        h('p', { class: 'cm-texte' }, n.note),
+      );
+      fil.append(message1);
+      for (const r of n.reponses) {
+        fil.append(
+          h('div', { class: 'cm-message cm-message--reponse' }, h('p', { class: 'cm-meta' }, h('strong', {}, r.auteur), ` · ${quand(r.date)}`), h('p', { class: 'cm-texte' }, r.texte)),
+        );
+      }
+      const quoi = h('p', { class: 'cm-quoi' }, h('strong', {}, n.libelle || 'Élément'), ` : « ${n.apercu.slice(0, 90)}${n.apercu.length > 90 ? '…' : ''} »`);
+      if (!el) quoi.append(h('em', {}, ' (élément introuvable sur la page, il a peut-être été modifié)'));
+
+      const zone = h('textarea', { id: 'cm-reponse', rows: '2', maxlength: '4000' }) as HTMLTextAreaElement;
+      const auteur = champAuteur('cm-auteur-reponse');
+      const erreur = h('p', { class: 'cm-erreur', role: 'alert', hidden: true });
+      const repondre = h('button', { type: 'submit', class: 'cm-principal' }, 'Répondre');
+      const form = h(
+        'form',
+        { class: 'cm-form', novalidate: true },
+        h('div', { class: 'cm-champ' }, h('label', { for: 'cm-reponse' }, 'Répondre'), zone),
+        lireAuteur() ? null : auteur.bloc,
+        erreur,
+        h('div', { class: 'cm-actions' }, repondre),
+      );
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!zone.value.trim()) return message(erreur, 'La réponse est vide.');
+        const nom = lireAuteur() || auteur.input.value.trim();
+        if (!nom) return message(erreur, 'Indiquez votre prénom.');
+        garderAuteur(nom);
+        try {
+          const d = await appeler('POST', { action: 'repondre', id: n.id, texte: zone.value, auteur: nom });
+          remplacer(d.note);
+          ouvrirNote(d.note, pastilles.get(d.note.id)?.btn ?? source);
+        } catch (err) {
+          message(erreur, (err as Error).message);
+        }
+      });
+
+      const changer = h('button', { type: 'button', class: 'cm-secondaire' }, n.statut === 'fait' ? 'Rouvrir' : 'Marquer comme fait');
+      changer.addEventListener('click', async () => {
+        try {
+          const d = await appeler('POST', { action: 'statut', id: n.id, statut: n.statut === 'fait' ? 'a-faire' : 'fait' });
+          remplacer(d.note);
+          dessinerPastilles();
+          ouvrirNote(d.note, pastilles.get(d.note.id)?.btn ?? source);
+        } catch (err) {
+          message(erreur, (err as Error).message);
+        }
+      });
+      const supprimer = h('button', { type: 'button', class: 'cm-lien-danger' }, 'Supprimer');
+      supprimer.addEventListener('click', async () => {
+        if (!confirm(`Supprimer la note ${n.numero}? Elle disparaîtra pour tout le monde.`)) return;
+        try {
+          await appeler('POST', { action: 'supprimer', id: n.id });
+          notes = notes.filter((x) => x.id !== n.id);
+          majCompteur();
+          fermerBulle(false);
+          dessinerPastilles();
+          annoncer(`Note ${n.numero} supprimée.`);
+        } catch (err) {
+          message(erreur, (err as Error).message);
+        }
+      });
+      b.append(quoi, fil, form, h('div', { class: 'cm-actions cm-actions--bas' }, changer, supprimer));
+      if (el) montrerCadre(el);
+      changer.focus({ preventScroll: true });
+    }
+
+    function remplacer(n: Note) {
+      notes = notes.map((x) => (x.id === n.id ? n : x));
+      majCompteur();
+    }
+
+    const annonceur = h('p', { class: 'visuellement-cache', 'aria-live': 'polite', 'data-cm-ui': true });
+    document.body.append(annonceur);
+    const annoncer = (t: string) => {
+      annonceur.textContent = t;
+    };
+
+    /* ------------------------------------------------------------ mode Commenter */
+    function montrerCadre(el: Element) {
+      const r = el.getBoundingClientRect();
+      cadre.hidden = false;
+      cadre.style.left = `${r.left + window.scrollX - 3}px`;
+      cadre.style.top = `${r.top + window.scrollY - 3}px`;
+      cadre.style.width = `${r.width + 6}px`;
+      cadre.style.height = `${r.height + 6}px`;
+    }
+
+    function surSurvol(e: Event) {
+      if (!actif || fige) return;
+      const c = cibleDepuis(e.target as Element);
+      survol = c;
+      if (c) montrerCadre(c);
+      else cadre.hidden = true;
+    }
+
+    function surClic(e: MouseEvent) {
+      const t = e.target as Element;
+      if (!actif) {
+        // Hors du mode Commenter, un clic ailleurs referme la note ouverte, sans bloquer le site.
+        if (bulle && !t.closest('.cm-bulle, .cm-pastille')) fermerBulle(false);
+        return;
+      }
+      if (estInterface(t)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (bulle) return fermerBulle(false);
+      const c = cibleDepuis(t);
+      if (!c) return;
+      const r = c.getBoundingClientRect();
+      const x = r.width ? (e.clientX - r.left) / r.width : 0.5;
+      const y = r.height ? (e.clientY - r.top) / r.height : 0.5;
+      ouvrirFormulaire(c, Math.min(Math.max(x, 0), 1), Math.min(Math.max(y, 0), 1));
+    }
+
+    // Empêche les liens, boutons et filtres de réagir pendant qu'on commente.
+    const bloquer = (e: Event) => {
+      if (actif && !estInterface(e.target as Element)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    function basculer(on: boolean) {
+      if (on && !disponible) {
+        etat.textContent = 'Notes pas encore activées : la base de données doit être reliée au projet.';
+        return;
+      }
+      actif = on;
+      bascule.setAttribute('aria-pressed', String(on));
+      document.documentElement.classList.toggle('cm-actif', on);
+      consigne.hidden = !on;
+      if (!on) {
+        fige = null;
+        survol = null;
+        cadre.hidden = true;
+        fermerBulle(false);
+      }
+    }
+
+    bascule.addEventListener('click', () => basculer(!actif));
+    document.addEventListener('pointerover', surSurvol, true);
+    document.addEventListener('click', surClic, true);
+    for (const type of ['pointerdown', 'mousedown', 'submit', 'auxclick', 'dblclick']) document.addEventListener(type, bloquer, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (bulle) fermerBulle();
+      else if (actif) basculer(false);
+    });
+
+    /* ------------------------------------------------------------ suivre la mise en page */
+    window.addEventListener('resize', placer);
+    window.addEventListener('load', placer);
+    document.addEventListener('toggle', placer, true);
+    new ResizeObserver(placer).observe(document.body);
+    new MutationObserver(placer).observe(document.querySelector('main') ?? document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['hidden', 'open', 'class'],
+    });
+    document.fonts?.ready.then(placer);
+
+    /* ------------------------------------------------------------ chargement */
+    (async () => {
+      try {
+        const d = await appeler('GET');
+        notes = d.notes ?? [];
+        majCompteur();
+        dessinerPastilles();
+        const viser = new URLSearchParams(location.search).get('note');
+        const p = viser ? pastilles.get(viser) : null;
+        if (p) {
+          setTimeout(() => {
+            p.btn.scrollIntoView({ block: 'center' });
+            ouvrirNote(p.note, p.btn);
+          }, 300);
+        }
+      } catch (err) {
+        disponible = (err as Error & { code?: string }).code !== 'stockage' && (err as Error & { code?: string }).code !== 'introuvable';
+        etat.textContent = disponible ? 'Notes momentanément indisponibles.' : 'Notes pas encore activées.';
+      }
+    })();
+  }
+</script>
+
+<style is:global>
+  .cm-commandes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pas-2) var(--pas-3);
+  }
+  .cm-bouton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    min-height: 2.25rem;
+    padding: 0 0.7rem;
+    border: 1.5px solid #8a5a00;
+    border-radius: var(--rayon-petit);
+    background: #ffffff;
+    color: #3d2a00;
+    font: 600 0.8125rem/1 var(--f-texte);
+    cursor: pointer;
+  }
+  .cm-bouton[aria-pressed='true'] {
+    border-color: #b0124f;
+    background: #b0124f;
+    color: #ffffff;
+  }
+  .cm-bouton:focus-visible {
+    outline: 3px solid #3d2a00;
+    outline-offset: 2px;
+  }
+  .cm-lien {
+    color: #3d2a00;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+  .cm-etat {
+    color: #3d2a00;
+    font-size: 0.8125rem;
+  }
+  .cm-etat:empty {
+    display: none;
+  }
+  html.cm-actif,
+  html.cm-actif * {
+    cursor: crosshair !important;
+  }
+  html.cm-actif [data-cm-ui],
+  html.cm-actif [data-cm-ui] *,
+  html.cm-actif .apercu,
+  html.cm-actif .apercu * {
+    cursor: auto !important;
+  }
+  html.cm-actif [data-cm-ui] button,
+  html.cm-actif .apercu button,
+  html.cm-actif .apercu a {
+    cursor: pointer !important;
+  }
+  .cm-couche {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    z-index: 900;
+  }
+  .cm-cadre {
+    position: absolute;
+    z-index: 899;
+    pointer-events: none;
+    border: 2px solid #b0124f;
+    border-radius: 6px;
+    background: rgba(176, 18, 79, 0.07);
+    transition:
+      left 0.06s,
+      top 0.06s,
+      width 0.06s,
+      height 0.06s;
+  }
+  .cm-pastille {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 0.4rem;
+    border: 2px solid #fff;
+    border-radius: 999px 999px 999px 4px;
+    background: #b0124f;
+    color: #fff;
+    font: 700 0.8125rem/1 var(--f-texte);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+  .cm-pastille:hover {
+    background: #8a0d3d;
+  }
+  .cm-pastille--fait {
+    background: #2b6e3f;
+    opacity: 0.85;
+  }
+  .cm-pastille:focus-visible,
+  .cm-bulle button:focus-visible,
+  .cm-bulle textarea:focus-visible,
+  .cm-bulle input:focus-visible {
+    outline: 3px solid #b0124f;
+    outline-offset: 2px;
+  }
+  .cm-consigne {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    transform: translateX(-50%);
+    z-index: 1001;
+    max-width: calc(100vw - 2rem);
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    background: #1f1f1f;
+    color: #fff;
+    font: 600 0.875rem/1.3 var(--f-texte);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    text-align: center;
+  }
+  .cm-bulle {
+    position: absolute;
+    z-index: 1000;
+    width: min(360px, calc(100vw - 24px));
+    max-height: min(70vh, 560px);
+    overflow: auto;
+    padding: 0.9rem 1rem 1rem;
+    border: 1px solid #d9d9d9;
+    border-radius: 12px;
+    background: #fff;
+    color: #1f1f1f;
+    font: 400 0.9375rem/1.45 var(--f-texte);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    text-align: left;
+  }
+  .cm-bulle--feuille {
+    position: fixed;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 16px 16px 0 0;
+  }
+  .cm-bulle__tete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .cm-bulle__titre {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .cm-fermer {
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #1f1f1f;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .cm-fermer:hover {
+    background: #f0f0f0;
+  }
+  .cm-quoi {
+    margin: 0 0 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: #f6f2f4;
+    color: #444;
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+  }
+  .cm-petit {
+    justify-self: start;
+    margin: 0 0 0.2rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #8a0d3d;
+    font: 600 0.8125rem/1.3 var(--f-texte);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .cm-form {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .cm-champ {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .cm-champ label {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+  .cm-champ textarea,
+  .cm-champ input {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1.5px solid #767676;
+    border-radius: 6px;
+    background: #fff;
+    color: #1f1f1f;
+    font: inherit;
+    resize: vertical;
+  }
+  .cm-piege {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+  }
+  .cm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cm-actions--bas {
+    justify-content: space-between;
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid #e6e6e6;
+  }
+  .cm-principal,
+  .cm-secondaire {
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 6px;
+    font: 600 0.875rem/1 var(--f-texte);
+    cursor: pointer;
+  }
+  .cm-principal {
+    border: 0;
+    background: #b0124f;
+    color: #fff;
+  }
+  .cm-principal:hover {
+    background: #8a0d3d;
+  }
+  .cm-principal[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .cm-secondaire {
+    border: 1.5px solid #767676;
+    background: #fff;
+    color: #1f1f1f;
+  }
+  .cm-lien-danger {
+    border: 0;
+    background: none;
+    color: #a4262c;
+    font: 600 0.8125rem/1 var(--f-texte);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .cm-erreur {
+    margin: 0;
+    color: #a4262c;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .cm-fil {
+    display: grid;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+  .cm-message p {
+    margin: 0;
+  }
+  .cm-message--reponse {
+    padding-left: 0.7rem;
+    border-left: 3px solid #e2c6d1;
+  }
+  .cm-meta {
+    color: #555;
+    font-size: 0.8125rem;
+  }
+  .cm-texte {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  @media print {
+    .cm-couche,
+    .cm-cadre,
+    .cm-bulle,
+    .cm-consigne {
+      display: none !important;
+    }
+  }
+</style>
