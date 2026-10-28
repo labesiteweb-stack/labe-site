@@ -15,7 +15,8 @@ const pubs = (await publiees('publications')).sort(
   (a, b) => b.data.annee - a.data.annee || a.data.type.localeCompare(b.data.type) || a.data.auteurs.localeCompare(b.data.auteurs),
 );
 const annees = [...new Set(pubs.map((p) => p.data.annee))];
-const types = ['article', 'abrege', 'transfert', 'soumis', 'livre', 'rapport', 'formation'] as const;
+// Le site ne montre que les publications parues (décision du labo, 28 oct. 2026) : pas d'abrégés ni d'articles soumis.
+const types = (['article', 'transfert', 'livre', 'rapport', 'formation'] as const).filter((ty) => pubs.some((p) => p.data.type === ty));
 const compte = (type: string) => pubs.filter((p) => p.data.type === type).length;
 const MAX = 10;
 

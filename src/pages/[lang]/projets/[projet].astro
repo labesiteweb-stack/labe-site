@@ -2,7 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import { render } from 'astro:content';
 import { LANGUES, t, lien } from '../../../i18n/ui';
-import { parLangue, slug, periode, enCours, titreCourt, projetsPhares, projetAUnePage } from '../../../lib/contenu';
+import { parLangue, slug, periode, titreCourt, projetsPhares, projetAUnePage } from '../../../lib/contenu';
 import AValider from '../../../components/AValider.astro';
 import Icone from '../../../components/Icone.astro';
 
@@ -22,7 +22,6 @@ const { p } = Astro.props;
 if (!projetAUnePage(p)) return Astro.redirect(`${lien(lang, 'projets')}#${slug(p.id)}`);
 const { Content } = await render(p);
 const d = p.data;
-const ec = enCours(d.fin);
 const aTitreCourt = Boolean(d.titre_court);
 const autres = (await projetsPhares(lang)).filter((x) => x.id !== p.id).slice(0, 3);
 const details = [
@@ -45,11 +44,6 @@ const details = [
     </nav>
     <div class="fiche__tete">
       <div class="fiche__titres">
-        <ul class="fiche__pastilles">
-          <li class="pastille">{ec ? t(lang, 'projets.statut_en_cours') : t(lang, 'projets.statut_termine')}</li>
-          <li class="pastille pastille--neutre">{periode(d.debut, d.fin)}</li>
-          <li class="pastille pastille--neutre">{t(lang, `projets.${d.role}`)}</li>
-        </ul>
         <h1 class:list={{ 'fiche__h1--long': !aTitreCourt }}>{titreCourt(p)}</h1>
         {aTitreCourt && <p class="fiche__complet">{d.titre}</p>}
         <AValider si={d.a_valider} lang={lang} />
@@ -71,15 +65,14 @@ const details = [
     </div>
   </header>
 
-  {
-    d.image && (
-      <figure class="cadre fiche__figure">
-        <img class="photo" src={d.image} alt={d.image_alt ?? ''} width="1600" height="1067" />
-      </figure>
-    )
-  }
-
-  <section class="cadre fiche__corps">
+  <section class:list={['cadre fiche__corps', { 'fiche__corps--photo': d.image }]}>
+    {
+      d.image && (
+        <figure class="fiche__figure">
+          <img class="photo" src={d.image} alt={d.image_alt ?? ''} width="1600" height="1067" />
+        </figure>
+      )
+    }
     <div class="prose fiche__texte">
       {d.resume && <p class="fiche__resume">{d.resume}</p>}
       <Content />
@@ -136,17 +129,6 @@ const details = [
   .fiche__titres {
     grid-column: span 8;
   }
-  .fiche__pastilles {
-    list-style: none;
-    margin: 0 0 var(--pas-5);
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--pas-2);
-  }
-  .pastille--neutre {
-    background: var(--c-surface);
-  }
   .fiche__titres h1 {
     font-size: clamp(2.6rem, 6vw, 4.5rem);
     line-height: 1;
@@ -176,15 +158,24 @@ const details = [
     max-width: 14rem;
     width: auto;
   }
-  .fiche__figure {
-    margin-block: var(--pas-4) clamp(2.5rem, 6vw, 4.5rem);
-  }
-  .fiche__figure img {
-    aspect-ratio: 21 / 10;
-    object-position: 50% 40%;
-  }
   .fiche__corps {
     padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+  }
+  /* Photo réduite à gauche, texte à côté (demande du labo, 28 oct. 2026). */
+  .fiche__corps--photo {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+  .fiche__figure {
+    margin: 0;
+  }
+  .fiche__figure img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: 50% 40%;
   }
   .fiche__texte {
     font-size: 1.125rem;
@@ -251,6 +242,9 @@ const details = [
     .fiche__titres,
     .fiche__site {
       grid-column: 1 / -1;
+    }
+    .fiche__corps--photo {
+      grid-template-columns: 1fr;
     }
     .details dl > div {
       grid-template-columns: 1fr;

@@ -4,6 +4,7 @@ etiquette: Laboratoire Activité physique et Bien-Être
 accroche: Le LABE produit des connaissances sur l'activité physique et la santé mentale, et les transforme en programmes offerts là où les gens vivent et se soignent.
 image: /images/accueil/le-labo.webp
 image_alt: L'équipe du LABE devant l'entrée du Centre de recherche du CHUM
+photo_direction: /images/equipe/isabelle-dore-banc.webp
 a_valider: "Textes rédigés par nous à partir du CV (mission, façon de travailler, biographie d'Isabelle) : à relire."
 sections:
 - titre: Des études qui suivent les gens dans le temps

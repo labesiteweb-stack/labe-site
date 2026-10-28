@@ -29,7 +29,6 @@ const explorer = [
   <div class="cadre pied__grille">
     <div class="pied__marque">
       <img class="pied__logo pied__logo--clair" src={`/images/labe/labe-vertical-${lang}-blanc.png`} alt={`LABE, ${site.nom}`} width="700" height="543" loading="lazy" />
-      <img class="pied__logo pied__logo--fonce" src={`/images/labe/labe-vertical-${lang}.png`} alt={`LABE, ${site.nom}`} width="700" height="543" loading="lazy" />
     </div>
     <div>
       <h2 class="pied__titre">{t(lang, 'contact.trouver')}</h2>
@@ -123,9 +122,12 @@ const explorer = [
   }
   .pied a {
     color: var(--c-pied-lien);
+    text-decoration-color: var(--c-pied-souligne);
+    text-decoration-thickness: 2px;
   }
   .pied a:hover {
     color: var(--c-pied-titre);
+    text-decoration-thickness: 3px;
   }
   .pied :focus-visible {
     outline-color: var(--c-pied-focus);
@@ -140,18 +142,9 @@ const explorer = [
   .pied__logo {
     width: 9.5rem;
   }
-  .pied__logo--fonce {
-    display: none;
-  }
-  :global(:root[data-palette='b']) .pied__logo--clair {
-    display: none;
-  }
-  :global(:root[data-palette='b']) .pied__logo--fonce {
-    display: block;
-  }
   .pied__titre {
     margin: 0 0 var(--pas-3);
-    font-family: var(--f-texte);
+    font-family: var(--f-majuscules);
     font-size: 0.8125rem;
     font-weight: 600;
     font-stretch: 115%;

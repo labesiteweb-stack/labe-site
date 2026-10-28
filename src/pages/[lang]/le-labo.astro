@@ -81,8 +81,7 @@ const albums = (await publiees('galerie'))
     direction && (
       <section class="cadre direction" id="direction" aria-labelledby="direction-titre">
         <div class="direction__image">
-          <Portrait nom={direction.data.nom} photo={direction.data.photo} cadrage={direction.data.cadrage} />
-          <AValider si={direction.data.a_valider} lang={lang} note="Ce portrait est-il bien celui d'Isabelle? Lequel préfère-t-elle parmi ceux de la séance de 2025?" />
+          <Portrait nom={direction.data.nom} photo={d.photo_direction ?? direction.data.photo} cadrage="centre" />
         </div>
         <div class="direction__texte">
           <p class="etiquette">{t(lang, 'labo.direction')}</p>

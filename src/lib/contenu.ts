@@ -67,7 +67,7 @@ export const paragraphes = (texte: string) => texte.split(/\n\s*\n/).map((p) => 
 
 /**
  * Version d'aperçu : vraie partout sauf sur le site de production de Vercel.
- * Elle affiche les étiquettes « À valider » et le sélecteur de palettes, jamais sur le site en ligne.
+ * Elle affiche les étiquettes « À valider » et le mode Commenter, jamais sur le site en ligne.
  */
 export const APERCU = process.env.VERCEL_ENV !== 'production';
 

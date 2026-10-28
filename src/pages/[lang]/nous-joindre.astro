@@ -28,7 +28,8 @@ const externe = (h: string) => /^https?:/.test(h);
     {page.accroche && <p class="chapo">{page.accroche}</p>}
   </header>
 
-  <div class="cadre contact">
+  <div class:list={['cadre contact', { 'contact--seul': page.sections.length === 0 }]}>
+    {page.sections.length > 0 && (
     <ul class="voies">
       {
         page.sections.map((s) => (
@@ -48,6 +49,7 @@ const externe = (h: string) => /^https?:/.test(h);
         ))
       }
     </ul>
+    )}
 
     <aside class="coordonnees" id="coordonnees" aria-labelledby="coord-titre">
       <h2 id="coord-titre">{t(lang, 'contact.coordonnees')}</h2>
@@ -144,6 +146,10 @@ const externe = (h: string) => /^https?:/.test(h);
   .coordonnees dd {
     margin: var(--pas-1) 0 0;
     line-height: 1.6;
+  }
+  .contact--seul .coordonnees {
+    grid-column: 1 / span 7;
+    position: static;
   }
   @media (max-width: 54em) {
     .voies,

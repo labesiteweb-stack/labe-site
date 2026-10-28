@@ -216,14 +216,12 @@ collections:
         default: article
         options:
           - { label: Article révisé par les pairs, value: article }
-          - { label: Article soumis, value: soumis }
           - { label: Transfert de connaissances, value: transfert }
-          - { label: Abrégé de conférence, value: abrege }
           - { label: Livre ou collaboration, value: livre }
           - { label: Rapport de recherche, value: rapport }
           - { label: Formation développée, value: formation }
       - { name: annee, label: Année, widget: number, value_type: int }
-      - { name: statut, label: Statut (facultatif), widget: string, required: false, hint: 'Par exemple « Accepté », « Sous presse » ou « Révisé et resoumis »' }
+      - { name: statut, label: Statut (facultatif), widget: string, required: false, hint: 'Par exemple « Accepté » ou « Sous presse ». Le site ne montre que les publications parues ou acceptées.' }
       - { name: auteurs, label: Auteurs, widget: text, hint: 'Format « Nom Initiales », séparés par des virgules. Ex. : Piché A, Montiel C, Doré I' }
       - { name: titre, label: Titre, widget: text }
       - { name: source, label: Revue ou éditeur, widget: string, required: false }
@@ -439,6 +437,7 @@ collections:
           - { name: accroche, label: Mission en une phrase, widget: text, i18n: true }
           - { name: image, label: Photo, widget: image, required: false, i18n: duplicate, media_folder: /public/images/accueil, public_folder: /images/accueil }
           - { name: image_alt, label: Description de la photo, widget: string, required: false, i18n: true }
+          - { name: photo_direction, label: Photo d'Isabelle sur cette page, widget: image, required: false, i18n: duplicate, media_folder: /public/images/equipe, public_folder: /images/equipe, hint: 'Laisser vide pour utiliser son portrait de la page Équipe.' }
           - name: body
             label: Présentation
             widget: markdown

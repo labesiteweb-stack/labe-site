@@ -178,8 +178,8 @@ const menus = [
   .entete {
     position: relative;
     z-index: 20;
-    background: var(--c-fond);
-    border-bottom: 3px solid var(--c-filet);
+    background: var(--c-entete-fond);
+    border-bottom: 1px solid var(--c-entete-trait);
   }
   .entete__rang {
     display: flex;
@@ -226,7 +226,7 @@ const menus = [
     position: relative;
   }
   .menu__bouton:hover {
-    background: var(--c-surface);
+    background: var(--c-entete-survol);
     color: var(--c-texte);
   }
   .menu__bouton.est-actif {
@@ -243,7 +243,7 @@ const menus = [
     background: currentColor;
   }
   .menu__bouton[aria-expanded='true'] {
-    background: var(--c-surface);
+    background: var(--c-entete-survol);
   }
   .menu__bouton :global(.menu__chevron) {
     transition: transform 150ms ease;
@@ -257,7 +257,7 @@ const menus = [
     left: 0;
     min-width: 17rem;
     padding: var(--pas-3);
-    background: var(--c-fond);
+    background: var(--c-entete-fond);
     border: 1px solid var(--c-trait);
     border-radius: var(--rayon);
     box-shadow: 0 16px 40px rgba(20, 32, 26, 0.12);
@@ -280,7 +280,7 @@ const menus = [
     text-decoration: none;
   }
   .menu__lien:hover {
-    background: var(--c-surface);
+    background: var(--c-entete-survol);
     color: var(--c-action);
   }
   .menu__lien[aria-current='page'] {
@@ -309,7 +309,7 @@ const menus = [
     padding: 0 0.9rem;
     border: 1.5px solid var(--c-bordure);
     border-radius: var(--rayon-petit);
-    background: var(--c-fond);
+    background: var(--c-entete-fond);
     color: var(--c-texte);
     font-family: var(--f-texte);
     font-size: 1rem;
@@ -372,7 +372,7 @@ const menus = [
       margin: 0 0 var(--pas-3) var(--pas-2);
       padding: 0 0 0 var(--pas-3);
       border: 0;
-      border-left: 2px solid var(--c-surface-2);
+      border-left: 2px solid var(--c-entete-trait);
       border-radius: 0;
       box-shadow: none;
     }

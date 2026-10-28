@@ -285,6 +285,9 @@ const externe = (href: string) => /^https?:/.test(href);
     grid-column: span 5;
     margin: 0;
   }
+  .axes__tete :global(.a-valider) {
+    grid-column: 1 / -1;
+  }
   .axes__tete .chapo {
     grid-column: 7 / span 6;
     margin: 0.4rem 0 0;

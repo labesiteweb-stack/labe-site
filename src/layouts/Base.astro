@@ -22,12 +22,6 @@ const desc =
   description ??
   "Le LABE, à l'Université de Montréal et au CRCHUM, étudie comment l'activité physique favorise la santé mentale et le bien-être.";
 const canonique = new URL(Astro.url.pathname, Astro.site);
-const palettes = [
-  { cle: '', texte: 'Plein air (proposition)' },
-  { cle: 'a', texte: 'A · Charte présentée' },
-  { cle: 'b', texte: 'B · UdeM turquoise' },
-  { cle: 'c', texte: 'C · UdeM marine' },
-];
 ---
 
 <!doctype html>
@@ -39,26 +33,13 @@ const palettes = [
     <meta name="description" content={desc} />
     <link rel="canonical" href={canonique} />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="preload" href="/fonts/archivo-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/spectral-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
     <meta property="og:title" content={titreComplet} />
     <meta property="og:description" content={desc} />
     <meta property="og:type" content="website" />
     <meta property="og:image" content={new URL(image ?? '/images/accueil/hero-jardin.webp', Astro.site)} />
-    <meta name="theme-color" content="#17301f" />
+    <meta name="theme-color" content="#3a5741" />
     {APERCU && <meta name="robots" content="noindex" />}
-    {
-      APERCU && (
-        <script is:inline>
-          try {
-            const p = new URLSearchParams(location.search).get('palette');
-            const choix = p !== null ? (p === 'plein-air' ? '' : p) : localStorage.getItem('labe-palette') || '';
-            if (['a', 'b', 'c'].includes(choix)) document.documentElement.dataset.palette = choix;
-            if (p !== null) localStorage.setItem('labe-palette', choix);
-          } catch (e) {}
-        </script>
-      )
-    }
   </head>
   <body>
     <a class="evitement" href="#contenu">{t(lang, 'lien.evitement')}</a>
@@ -67,16 +48,6 @@ const palettes = [
         <div class="apercu" data-apercu>
           <div class="cadre apercu__rang">
             <p class="apercu__texte">{t(lang, 'apercu.bandeau')}</p>
-            <div class="apercu__palettes" role="group" aria-label={t(lang, 'apercu.palette')}>
-              <span class="apercu__libelle" aria-hidden="true">
-                {t(lang, 'apercu.palette')}
-              </span>
-              {palettes.map((p) => (
-                <button type="button" class="apercu__choix" data-palette-choix={p.cle} aria-pressed={p.cle === '' ? 'true' : 'false'}>
-                  {p.texte}
-                </button>
-              ))}
-            </div>
             <Commentaires lang={lang} />
           </div>
         </div>
@@ -89,30 +60,6 @@ const palettes = [
     </main>
 
     <Pied lang={lang} />
-
-    <script>
-      // Sélecteur de palettes : présent seulement sur la version d'aperçu.
-      const racine = document.documentElement;
-      const boutons = [...document.querySelectorAll<HTMLButtonElement>('[data-palette-choix]')];
-      if (boutons.length) {
-        const marquer = () => {
-          const actuelle = racine.dataset.palette ?? '';
-          boutons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.paletteChoix === actuelle)));
-        };
-        boutons.forEach((b) =>
-          b.addEventListener('click', () => {
-            const c = b.dataset.paletteChoix ?? '';
-            if (c) racine.dataset.palette = c;
-            else delete racine.dataset.palette;
-            try {
-              localStorage.setItem('labe-palette', c);
-            } catch (e) {}
-            marquer();
-          }),
-        );
-        marquer();
-      }
-    </script>
   </body>
 </html>
 
@@ -150,45 +97,5 @@ const palettes = [
   }
   .apercu__texte {
     margin: 0;
-  }
-  .apercu__palettes {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--pas-2);
-  }
-  .apercu__libelle {
-    font-weight: 700;
-  }
-  .apercu__choix {
-    min-height: 2.25rem;
-    padding: 0 0.7rem;
-    border: 1.5px solid #8a5a00;
-    border-radius: var(--rayon-petit);
-    background: #ffffff;
-    color: #3d2a00;
-    font-family: var(--f-texte);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .apercu__choix[aria-pressed='true'] {
-    background: #3d2a00;
-    border-color: #3d2a00;
-    color: #ffffff;
-  }
-  @media (max-width: 40em) {
-    .apercu__palettes {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      width: 100%;
-      padding-bottom: 2px;
-    }
-    .apercu__choix {
-      flex-shrink: 0;
-    }
-  }
-  .apercu__choix:focus-visible {
-    outline: 3px solid #3d2a00;
   }
 </style>

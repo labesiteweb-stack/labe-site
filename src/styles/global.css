@@ -1,10 +1,42 @@
 /*
-  Système visuel « Plein air » du LABE.
-  Les couleurs passent toutes par des rôles (--c-…). La palette principale est définie dans :root;
-  les palettes alternatives (aperçu seulement) redéfinissent les mêmes rôles sous [data-palette].
+  Système visuel du LABE, d'après la charte de couleurs fournie par le labo (28 oct. 2026).
+  Les couleurs passent toutes par des rôles (--c-…), définis une seule fois dans :root.
+  Deux polices : Inter pour les titres et le texte, Archivo élargie pour les petites étiquettes en majuscules.
 */
 
 /* Polices auto-hébergées (licence SIL OFL, voir public/fonts) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(/fonts/inter-latin-opsz-normal.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(/fonts/inter-latin-ext-opsz-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(/fonts/inter-latin-opsz-italic.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(/fonts/inter-latin-ext-opsz-italic.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
 @font-face {
   font-family: 'Archivo';
   font-style: normal;
@@ -23,87 +55,52 @@
   src: url(/fonts/archivo-latin-ext-standard-normal.woff2) format('woff2-variations');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-@font-face {
-  font-family: 'Spectral';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 400;
-  src: url(/fonts/spectral-latin-400-normal.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Spectral';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 400;
-  src: url(/fonts/spectral-latin-ext-400-normal.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Spectral';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 500;
-  src: url(/fonts/spectral-latin-500-normal.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Spectral';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 500;
-  src: url(/fonts/spectral-latin-ext-500-normal.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Spectral';
-  font-style: italic;
-  font-display: swap;
-  font-weight: 400;
-  src: url(/fonts/spectral-latin-400-italic.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Spectral';
-  font-style: italic;
-  font-display: swap;
-  font-weight: 400;
-  src: url(/fonts/spectral-latin-ext-400-italic.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
 
-/* ---------------------------------------------------------------- Palette principale « Plein air »
-   La forêt dit qui on est, le lac dit où cliquer, le soleil apporte la lumière.
-   Contrastes vérifiés (WCAG) : encre sur blanc 16,8:1, lac sur blanc 7,1:1, lac sur lichen 5,9:1,
-   épinette sur blanc 6,0:1, soleil sur forêt profonde 7,6:1. Le soleil ne porte jamais de texte sur fond clair. */
+/* ---------------------------------------------------------------- Charte de couleurs du LABE
+   Vert foncé #3A5741, vert #5D8565, vert pâle #D6E0D8 (le vert à 25 %), orange #FE7D00, orange pâle #FEE7D1 (l'orange à 18 %).
+   Contrastes vérifiés (WCAG AA) : vert foncé sur blanc 8,0:1, sur vert pâle 5,9:1; encre sur vert pâle 12,4:1;
+   encre sur orange 6,5:1; blanc sur vert foncé 8,0:1. L'orange ne porte jamais de texte sur fond clair (2,6:1) :
+   il sert d'accent (filets, pastilles, soulignés), et de fond seulement avec du texte foncé. Le vert moyen
+   sert au décor et aux bordures (4,2:1 sur blanc), pas au petit texte. */
 :root {
-  --c-texte: #14201a; /* Encre */
-  --c-texte-2: #4d5a52; /* Gris mousse */
-  --c-titre: #1c3a2b; /* Forêt */
-  --c-identite: #4a6a52; /* Épinette, le vert du logo */
-  --c-action: #0e6170; /* Lac */
-  --c-action-survol: #0a4c58;
-  --c-sur-action: #ffffff;
-  --c-focus: #0e6170;
-  --c-fond: #ffffff;
-  --c-surface: #f2f6f1; /* Brume */
-  --c-surface-2: #e2ece2; /* Lichen */
-  --c-lumiere: #f2b33d; /* Soleil : décor et aplats, jamais de texte sur fond clair */
-  --c-sur-lumiere: #14201a;
-  --c-aube: #fcf1d8; /* Fond des distinctions */
-  --c-trait: #d5ded6;
-  --c-bordure: #4d5a52; /* Bordures de champs et de boutons secondaires */
-  --c-filet: #f2b33d; /* Filet sous l'en-tête */
-  --c-pied-fond: #17301f;
-  --c-pied-texte: #d7e3d8;
-  --c-pied-titre: #ffffff;
-  --c-pied-lien: #f2b33d;
-  --c-pied-trait: rgba(255, 255, 255, 0.16);
-  --c-pied-focus: #f2b33d;
-  --c-filigrane: #e2ece2;
+  --charte-vert-fonce: #3a5741;
+  --charte-vert: #5d8565;
+  --charte-vert-pale: #d6e0d8;
+  --charte-orange: #fe7d00;
+  --charte-orange-pale: #fee7d1;
 
-  --f-titre: 'Spectral', Georgia, 'Times New Roman', serif;
-  --f-texte: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --c-texte: #14201a; /* Encre */
+  --c-texte-2: #4a554d;
+  --c-titre: var(--charte-vert-fonce);
+  --c-identite: var(--charte-vert-fonce);
+  --c-action: var(--charte-vert-fonce);
+  --c-action-survol: #2a4130;
+  --c-sur-action: #ffffff;
+  --c-focus: var(--charte-vert-fonce);
+  --c-fond: #ffffff;
+  --c-surface: #eef3ef; /* Vert de la charte à 10 % */
+  --c-surface-2: var(--charte-vert-pale);
+  --c-lumiere: var(--charte-orange); /* Accent : jamais de texte clair dessus, ni de texte orange sur fond clair */
+  --c-sur-lumiere: #14201a;
+  --c-aube: var(--charte-orange-pale); /* Fond des distinctions */
+  --c-trait: #d6e0d8;
+  --c-bordure: var(--charte-vert); /* Bordures de champs et de boutons secondaires */
+  --c-filet: var(--charte-orange);
+  --c-entete-fond: var(--charte-vert-pale); /* En-tête et menus : vert pâle de la charte */
+  --c-entete-survol: #c4d3c7;
+  --c-entete-trait: #bccbbf;
+  --c-pied-fond: var(--charte-vert-fonce);
+  --c-pied-texte: #e4ebe5;
+  --c-pied-titre: #ffffff;
+  --c-pied-lien: #ffffff;
+  --c-pied-souligne: var(--charte-orange);
+  --c-pied-trait: rgba(255, 255, 255, 0.2);
+  --c-pied-focus: var(--charte-orange);
+  --c-filigrane: var(--charte-vert-pale);
+
+  --f-titre: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --f-texte: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --f-majuscules: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
 
   --rayon: 12px; /* Photos, cartes, encadrés */
   --rayon-petit: 6px; /* Boutons, champs, étiquettes */
@@ -121,65 +118,6 @@
   --large: 75rem;
   --lecture: 42rem;
   --gouttiere: clamp(1rem, 4vw, 1.5rem);
-}
-
-/* ---------------------------------------------------------------- Palettes alternatives (aperçu seulement) */
-/* A. Charte présentée à Isabelle le 6 oct. 2026 (Meryem) : Vert LABE, Vert forêt, Ardoise, Papier */
-:root[data-palette='a'] {
-  --c-texte: #16191a;
-  --c-texte-2: #4a524c;
-  --c-titre: #22332a;
-  --c-identite: #4a6a52;
-  --c-action: #4e6e86;
-  --c-action-survol: #34495a;
-  --c-focus: #4e6e86;
-  --c-surface: #f2f3ef;
-  --c-surface-2: #e7e9e3;
-  --c-lumiere: #4a6a52;
-  --c-sur-lumiere: #ffffff;
-  --c-aube: #f2f3ef;
-  --c-trait: #d2d6cd;
-  --c-filet: #4a6a52;
-  --c-pied-fond: #22332a;
-  --c-pied-texte: #dde5dc;
-  --c-pied-lien: #e8c66a;
-  --c-pied-focus: #e8c66a;
-  --c-filigrane: #e7e9e3;
-}
-/* B. Couleurs du modèle UdeM demandées par Isabelle : bleu UdeM, turquoise pâle, pied de page clair */
-:root[data-palette='b'],
-:root[data-palette='c'] {
-  --c-texte: #16191a;
-  --c-texte-2: #4a524c;
-  --c-titre: #22332a;
-  --c-identite: #4a6a52;
-  --c-action: #0046b6;
-  --c-action-survol: #00358a;
-  --c-focus: #0046b6;
-  --c-surface: #e8f6f4;
-  --c-surface-2: #d3eeea;
-  --c-lumiere: #2bb3aa;
-  --c-sur-lumiere: #16191a;
-  --c-aube: #dff3f1;
-  --c-trait: #cfe3df;
-  --c-filet: #2bb3aa;
-  --c-filigrane: #d3eeea;
-}
-:root[data-palette='b'] {
-  --c-pied-fond: #c9edea;
-  --c-pied-texte: #16191a;
-  --c-pied-titre: #16191a;
-  --c-pied-lien: #0046b6;
-  --c-pied-trait: rgba(22, 25, 26, 0.18);
-  --c-pied-focus: #0046b6;
-}
-/* C. Variante UdeM marine : comme B, avec un pied de page bleu marine */
-:root[data-palette='c'] {
-  --c-pied-fond: #0a1440;
-  --c-pied-texte: #d6dbef;
-  --c-pied-titre: #ffffff;
-  --c-pied-lien: #8fd9d2;
-  --c-pied-focus: #8fd9d2;
 }
 
 /* ---------------------------------------------------------------- Base */
@@ -219,7 +157,7 @@ img {
 h1,
 h2 {
   font-family: var(--f-titre);
-  font-weight: 500;
+  font-weight: 650;
   color: var(--c-titre);
   margin: 0 0 var(--pas-4);
   text-wrap: balance;
@@ -227,14 +165,14 @@ h2 {
 
 h1 {
   font-size: clamp(2.375rem, 5vw, 3.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 
 h2 {
   font-size: clamp(1.75rem, 3vw, 2.5rem);
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 h3,
@@ -325,7 +263,7 @@ a:hover {
 .etiquette {
   display: block;
   margin: 0 0 var(--pas-3);
-  font-family: var(--f-texte);
+  font-family: var(--f-majuscules);
   font-size: 0.8125rem;
   font-weight: 600;
   font-stretch: 115%;

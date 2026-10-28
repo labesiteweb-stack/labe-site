@@ -1,8 +1,8 @@
 ---
 titre: L'équipe du LABE au CRCHUM
-date_texte: Été 2025
+date: 2025-08-18
 description: Séance photo de l'équipe au Centre de recherche du CHUM.
-a_valider: "Titre proposé par nous, date (été 2025) : exacts? OK pour publier ces photos?"
+a_valider: "Titre proposé par nous : exact? Date (18 août 2025) tirée des photos. OK pour publier ces photos?"
 photos:
 - /images/galerie/seance-photo-crchum-2025/mg-8602.webp
 - /images/galerie/seance-photo-crchum-2025/mg-8521.webp

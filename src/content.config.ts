@@ -152,6 +152,8 @@ const pages = defineCollection({
     accroche: texte(),
     image: texte(),
     image_alt: texte(),
+    // Le labo : photo d'Isabelle propre à cette page (sinon, son portrait de la fiche Équipe).
+    photo_direction: texte(),
     a_valider: aValider,
     axes: z.array(z.object({ titre: z.string(), texte: z.string() })).default([]),
     // Accueil : les portes d'entrée par public (patients, étudiants, médias).
