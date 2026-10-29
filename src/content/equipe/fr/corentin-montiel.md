@@ -11,4 +11,5 @@ distinctions:
 nom_publication:
 - Montiel C
 ordre: 21
+photo: /images/equipe/corentin-montiel.webp
 ---

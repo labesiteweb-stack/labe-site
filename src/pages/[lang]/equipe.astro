@@ -25,8 +25,8 @@ const anciens = tous
 const roles = ordreRole.filter((r) => r !== 'direction' && actuels.some((m) => m.data.role === r));
 const avecBio = await Promise.all(actuels.map(async (m) => ({ m, Bio: m.body?.trim() ? (await render(m)).Content : null })));
 const premierParagraphe = direction?.body?.split(/\n\s*\n/)[0]?.trim();
-// Portrait A : Isabelle (confirmé le 26 oct. 2026), retiré de la liste.
-const portraitsAassocier = ['b', 'c', 'd', 'e', 'f', 'g', 'h'];
+// Portraits associés : A Isabelle (26 oct.), C Léa Moubayed, D Florence Peters, E Alexia Piché, F Dorothée Comtois-Cabana, G Corentin Montiel (28 oct.).
+const portraitsAassocier = ['b', 'h'];
 const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|et|chez)\b/i.test(s) ? 'en' : undefined);
 ---
 
@@ -162,7 +162,7 @@ const sujetLangue = (s?: string) => (s && !/[éèàçùê]|\b(le|la|les|des|du|e
       <section class="cadre aassocier" aria-labelledby="aassocier">
         <div class="aassocier__boite">
           <h2 id="aassocier">Portraits de la séance de 2025 à associer</h2>
-          <AValider lang={lang} note="Associer chaque portrait (B à H) à un nom, et dire qui n'a pas encore de portrait." />
+          <AValider lang={lang} note="Associer les portraits B et H à un nom, et dire qui n'a pas encore de portrait." />
           <p>
             Visible seulement sur la version d'aperçu. Pour chaque lettre, indiquer le nom de la personne : le portrait remplacera alors son
             monogramme.

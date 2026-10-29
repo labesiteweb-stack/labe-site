@@ -7,5 +7,6 @@ annees: 2025 – 2026
 programme: Baccalauréat en physiothérapie, Faculté de médecine, Université de Montréal
 sujet: 'coACTIF : évaluation économique d''un programme de préadaptation'
 ordre: 50
-a_valider: "Orthographe du nom (le CV écrit « Moubayeh »), et l'afficher parmi les membres actuels?"
+a_valider: "Orthographe du nom (le CV écrit « Moubayeh »)."
+photo: /images/equipe/lea-moubayed.webp
 ---

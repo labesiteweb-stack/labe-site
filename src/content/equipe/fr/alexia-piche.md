@@ -14,4 +14,5 @@ distinctions:
 nom_publication:
 - Piché A
 ordre: 31
+photo: /images/equipe/alexia-piche.webp
 ---
