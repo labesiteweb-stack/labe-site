@@ -218,6 +218,47 @@ const externe = (href: string) => /^https?:/.test(href);
   .tete h1 :global(em) {
     font-weight: 400;
   }
+  /* Variante A « Forêt au couchant » : l'accueil sur une bande vert foncé, « bouger » en orange (3,1:1, gros titre). */
+  :global(:root[data-palette='a']) .tete {
+    position: relative;
+    margin-bottom: 0;
+    background: var(--charte-vert-fonce);
+    box-shadow: 0 0 0 100vmax var(--charte-vert-fonce);
+    clip-path: inset(0 -100vmax);
+    color: #e4ebe5;
+  }
+  :global(:root[data-palette='a']) .tete h1 {
+    color: #ffffff;
+  }
+  :global(:root[data-palette='a']) .tete h1 :global(em) {
+    color: var(--charte-orange);
+  }
+  :global(:root[data-palette='a']) .tete .etiquette {
+    color: var(--charte-vert-pale);
+  }
+  :global(:root[data-palette='a']) .tete .chapo {
+    color: #e4ebe5;
+  }
+  :global(:root[data-palette='a']) .tete .bouton {
+    border-color: var(--charte-orange);
+    background: var(--charte-orange);
+    color: #14201a;
+  }
+  :global(:root[data-palette='a']) .tete .bouton:hover {
+    border-color: #e46f00;
+    background: #e46f00;
+  }
+  :global(:root[data-palette='a']) .tete .bouton--contour {
+    border-color: #ffffff;
+    background: transparent;
+    color: #ffffff;
+  }
+  :global(:root[data-palette='a']) .tete .bouton--contour:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  :global(:root[data-palette='a']) .horizon {
+    background: var(--charte-vert-fonce);
+  }
   .tete__texte {
     grid-column: 9 / span 4;
   }

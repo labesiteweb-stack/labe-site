@@ -42,7 +42,10 @@ const { lang } = Astro.params;
           <option value="">Toutes les pages</option>
         </select>
       </div>
-      <button class="bouton bouton--contour" type="button" data-exporter>Télécharger pour Excel</button>
+      <div class="notes__actions">
+        <button class="bouton bouton--contour" type="button" data-tout-fait hidden>Marquer les notes affichées comme faites</button>
+        <button class="bouton bouton--contour" type="button" data-exporter>Télécharger pour Excel</button>
+      </div>
     </div>
     <p class="notes__etat" data-etat role="status">Chargement des notes…</p>
     <div class="notes__defile" data-defile hidden>
@@ -89,6 +92,8 @@ const { lang } = Astro.params;
   const boutonsStatut = [...document.querySelectorAll<HTMLButtonElement>('[data-statut]')];
   let notes: Note[] = [];
   let statut = 'a-faire';
+  let aFaireAffichees: Note[] = [];
+  const toutFait = document.querySelector<HTMLButtonElement>('[data-tout-fait]')!;
 
   const h = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string | undefined> = {}, ...enfants: (Node | string | null)[]) => {
     const el = document.createElement(tag);
@@ -146,6 +151,9 @@ const { lang } = Astro.params;
       );
     }
     etat.textContent = liste.length ? '' : notes.length ? 'Aucune note pour ce filtre.' : 'Aucune note pour l’instant.';
+    aFaireAffichees = liste.filter((n) => n.statut === 'a-faire');
+    toutFait.hidden = aFaireAffichees.length === 0;
+    toutFait.textContent = `Marquer ${aFaireAffichees.length > 1 ? `les ${aFaireAffichees.length} notes affichées` : 'la note affichée'} comme faite${aFaireAffichees.length > 1 ? 's' : ''}`;
     defile.hidden = liste.length === 0;
   }
 
@@ -173,6 +181,32 @@ const { lang } = Astro.params;
     }),
   );
   choixPage.addEventListener('change', afficher);
+
+  // Coche d'un coup toutes les notes « à faire » visibles avec les filtres choisis.
+  toutFait.addEventListener('click', async () => {
+    const cibles = [...aFaireAffichees];
+    if (!cibles.length || !confirm(`Marquer ${cibles.length} note${cibles.length > 1 ? 's' : ''} comme faite${cibles.length > 1 ? 's' : ''}?`)) return;
+    toutFait.disabled = true;
+    let echecs = 0;
+    for (const n of cibles) {
+      try {
+        const r = await fetch('/api/notes', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'statut', id: n.id, statut: 'fait' }),
+        });
+        if (!r.ok) throw new Error();
+        const d = await r.json();
+        notes = notes.map((x) => (x.id === n.id ? d.note : x));
+      } catch {
+        echecs++;
+      }
+    }
+    toutFait.disabled = false;
+    compter();
+    afficher();
+    if (echecs) etat.textContent = `${echecs} note${echecs > 1 ? 's' : ''} n’${echecs > 1 ? 'ont' : 'a'} pas pu être modifiée${echecs > 1 ? 's' : ''}. Réessayer.`;
+  });
 
   // Export : CSV séparé par des points-virgules, avec BOM, pour qu'Excel en français l'ouvre directement.
   document.querySelector('[data-exporter]')!.addEventListener('click', () => {
@@ -229,7 +263,10 @@ const { lang } = Astro.params;
     gap: var(--pas-4) var(--pas-5);
     margin-bottom: var(--pas-5);
   }
-  .notes__barre .bouton {
+  .notes__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pas-3);
     margin-left: auto;
   }
   .notes__etat:empty {

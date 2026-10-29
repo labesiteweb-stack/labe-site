@@ -97,6 +97,12 @@
   --c-pied-trait: rgba(255, 255, 255, 0.2);
   --c-pied-focus: var(--charte-orange);
   --c-filigrane: var(--charte-vert-pale);
+  --c-bouton: var(--c-action);
+  --c-bouton-survol: var(--c-action-survol);
+  --c-sur-bouton: var(--c-sur-action);
+  --c-pastille-fond: var(--c-surface-2);
+  --c-pastille-texte: var(--c-titre);
+  --entete-ligne: 1px solid var(--c-entete-trait);
 
   --f-titre: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   --f-texte: 'Inter', 'Helvetica Neue', Arial, sans-serif;
@@ -118,6 +124,48 @@
   --large: 75rem;
   --lecture: 42rem;
   --gouttiere: clamp(1rem, 4vw, 1.5rem);
+}
+
+/* ---------------------------------------------------------------- Variantes de thème (aperçu seulement)
+   Mêmes couleurs de la charte, utilisées autrement. Choisies avec les boutons du bandeau jaune.
+   A. Forêt au couchant : notre proposition. Accueil sur bande vert foncé, « bouger » en orange,
+      filet orange sous l'en-tête, petit trait orange devant les étiquettes.
+   B. Orange pour agir : tous les boutons d'action en orange, texte foncé (6,5:1).
+   C. Orange chaleureux : les aplats passent à l'orange pâle, filet orange sous l'en-tête. */
+:root[data-palette='a'] {
+  --entete-ligne: 4px solid var(--charte-orange);
+  --c-pastille-fond: var(--charte-orange-pale);
+}
+:root[data-palette='a'] .etiquette::before {
+  content: '';
+  display: inline-block;
+  width: 1.4em;
+  height: 3px;
+  margin-right: 0.6em;
+  vertical-align: middle;
+  background: var(--charte-orange);
+}
+
+:root[data-palette='b'] {
+  --c-bouton: var(--charte-orange);
+  --c-bouton-survol: #e46f00;
+  --c-sur-bouton: #14201a;
+  --c-pastille-fond: var(--charte-orange-pale);
+}
+:root[data-palette='b'] .lien-fleche svg {
+  color: #e46f00;
+}
+
+:root[data-palette='c'] {
+  --c-surface: #fff4ea;
+  --c-surface-2: var(--charte-orange-pale);
+  --c-trait: #f3dcc6;
+  --c-entete-fond: var(--charte-orange-pale);
+  --c-entete-survol: #fdd6b0;
+  --c-entete-trait: #f7c99b;
+  --entete-ligne: 3px solid var(--charte-orange);
+  --c-filigrane: #fdd6b0;
+  --c-aube: var(--charte-vert-pale);
 }
 
 /* ---------------------------------------------------------------- Base */
@@ -343,10 +391,10 @@ a:hover {
   gap: var(--pas-2);
   min-height: 3rem;
   padding: 0 1.4rem;
-  border: 2px solid var(--c-action);
+  border: 2px solid var(--c-bouton);
   border-radius: var(--rayon-petit);
-  background: var(--c-action);
-  color: var(--c-sur-action);
+  background: var(--c-bouton);
+  color: var(--c-sur-bouton);
   font-family: var(--f-texte);
   font-size: 1rem;
   font-weight: 600;
@@ -356,12 +404,13 @@ a:hover {
 }
 
 .bouton:hover {
-  background: var(--c-action-survol);
-  border-color: var(--c-action-survol);
-  color: var(--c-sur-action);
+  background: var(--c-bouton-survol);
+  border-color: var(--c-bouton-survol);
+  color: var(--c-sur-bouton);
 }
 
 .bouton--contour {
+  border-color: var(--c-action);
   background: transparent;
   color: var(--c-action);
 }
@@ -457,8 +506,8 @@ a:hover {
   min-height: 1.75rem;
   padding: 0 0.6rem;
   border-radius: var(--rayon-petit);
-  background: var(--c-surface-2);
-  color: var(--c-titre);
+  background: var(--c-pastille-fond);
+  color: var(--c-pastille-texte);
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.2;
