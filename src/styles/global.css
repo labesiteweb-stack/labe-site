@@ -146,6 +146,65 @@
   background: var(--charte-orange);
 }
 
+/* A : le vert foncé est distribué dans tout le site. Les en-têtes de page deviennent une bande vert foncé
+   pleine largeur, comme l'accueil, ainsi que quelques blocs repères : « Le labo » sur l'accueil,
+   « Détails du projet », « Étudier au LABE » et les coordonnées. Les rôles de couleur sont redéfinis
+   localement, donc liens, filtres et boutons s'adaptent tout seuls (contrastes vérifiés). */
+:root[data-palette='a'] .entete-page,
+:root[data-palette='a'] .section--surface.labo,
+:root[data-palette='a'] .details,
+:root[data-palette='a'] .etudier,
+:root[data-palette='a'] .coordonnees {
+  --c-texte: #ffffff;
+  --c-texte-2: #e4ebe5;
+  --c-titre: #ffffff;
+  --c-identite: var(--charte-vert-pale);
+  --c-action: #ffffff;
+  --c-action-survol: var(--charte-vert-pale);
+  --c-sur-action: #14201a;
+  --c-bouton: var(--charte-orange);
+  --c-bouton-survol: #e46f00;
+  --c-sur-bouton: #14201a;
+  --c-bordure: var(--charte-vert-pale);
+  --c-fond: var(--charte-vert-fonce);
+  --c-surface: rgba(255, 255, 255, 0.1);
+  --c-surface-2: rgba(255, 255, 255, 0.1);
+  --c-trait: rgba(255, 255, 255, 0.22);
+  --c-focus: var(--charte-orange);
+  --c-pastille-fond: rgba(255, 255, 255, 0.14);
+  --c-pastille-texte: #ffffff;
+  background: var(--charte-vert-fonce);
+  color: var(--c-texte);
+}
+:root[data-palette='a'] .entete-page {
+  box-shadow: 0 0 0 100vmax var(--charte-vert-fonce);
+  clip-path: inset(0 -100vmax);
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+:root[data-palette='a'] .entete-page :focus-visible,
+:root[data-palette='a'] .details :focus-visible,
+:root[data-palette='a'] .etudier :focus-visible,
+:root[data-palette='a'] .coordonnees :focus-visible,
+:root[data-palette='a'] .labo :focus-visible {
+  outline-color: var(--charte-orange);
+}
+/* Les champs de saisie gardent un fond blanc et du texte foncé, même sur la bande. */
+:root[data-palette='a'] .entete-page input,
+:root[data-palette='a'] .entete-page select {
+  background: #ffffff;
+  color: #14201a;
+}
+:root[data-palette='a'] .entete-page .recherche svg {
+  color: #4a554d;
+}
+/* Logos de projets (souvent foncés) : posés sur une pastille blanche. */
+:root[data-palette='a'] .entete-page .fiche__logo {
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--rayon-petit);
+  background: #ffffff;
+  max-height: 4.2rem;
+}
+
 :root[data-palette='b'] {
   --c-bouton: var(--charte-orange);
   --c-bouton-survol: #e46f00;
