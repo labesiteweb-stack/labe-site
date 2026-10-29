@@ -129,11 +129,11 @@
 /* ---------------------------------------------------------------- Variantes de thème (aperçu seulement)
    Mêmes couleurs de la charte, utilisées autrement. Choisies avec les boutons du bandeau jaune.
    A. Forêt au couchant : notre proposition. Accueil sur bande vert foncé, « bouger » en orange,
-      filet orange sous l'en-tête, petit trait orange devant les étiquettes.
+      petit trait orange devant les étiquettes.
    B. Orange pour agir : tous les boutons d'action en orange, texte foncé (6,5:1).
-   C. Orange chaleureux : les aplats passent à l'orange pâle, filet orange sous l'en-tête. */
+   C. Orange chaleureux : les aplats passent à l'orange pâle.
+   Aucun thème n'a de ligne orange sous l'en-tête (demande du 28 oct. 2026). */
 :root[data-palette='a'] {
-  --entete-ligne: 4px solid var(--charte-orange);
   --c-pastille-fond: var(--charte-orange-pale);
 }
 :root[data-palette='a'] .etiquette::before {
@@ -221,8 +221,7 @@
   --c-trait: #f3dcc6;
   --c-entete-fond: var(--charte-orange-pale);
   --c-entete-survol: #fdd6b0;
-  --c-entete-trait: #f7c99b;
-  --entete-ligne: 3px solid var(--charte-orange);
+  --c-entete-trait: #ecd8c4;
   --c-filigrane: #fdd6b0;
   --c-aube: var(--charte-vert-pale);
 }
